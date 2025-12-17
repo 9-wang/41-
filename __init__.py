@@ -10,11 +10,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
 from flask_caching import Cache
-# 显式导入config变量，确保能正确导入
+## 显式导入config模块，确保能正确导入
 import config as app_config
-
-# 从导入的模块中获取config变量
-config = app_config.config
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -32,8 +29,10 @@ def configure_cache(app):
     return cache
 
 def create_app(config_name='default'):
+    import logging
+    logging.info(f"正在创建应用实例，配置名称: {config_name}")
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
+    app.config.from_object(app_config.config[config_name])
     
     # 配置JSON响应，确保中文显示正常
     app.config['JSON_AS_ASCII'] = False
@@ -146,4 +145,13 @@ def create_app(config_name='default'):
     return app
 
 # 创建默认的应用实例，用于Gunicorn等WSGI服务器的部署
-app = create_app()
+# 添加错误处理，确保app实例能被正确创建
+try:
+    # 默认使用生产环境配置，优先考虑环境变量
+    config_name = os.environ.get('FLASK_CONFIG', 'production')
+    app = create_app(config_name)
+except Exception as e:
+    # 记录错误并使用开发环境作为备选
+    import logging
+    logging.error(f"创建应用实例失败，使用备选配置: {e}")
+    app = create_app('development')
