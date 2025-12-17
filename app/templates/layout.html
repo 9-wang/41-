@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>{% block title %}石榴籽家园{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  {% block head %}
+  {% block extra_scripts %}{% endblock %}
+{% endblock %}
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .nav-active { border-bottom: 3px solid #F39C12; }
+    {% block styles %}{% endblock %}
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 导航区 -->
+  <header class="bg-white shadow-md fixed top-0 w-full z-50 h-20 flex items-center px-4 md:px-12">
+    <div class="text-xl md:text-2xl font-serif text-[#E74C3C] flex items-center">
+        <span class="iconify mr-2" data-icon="mdi:fruit-grapes" data-width="32"></span>
+        石榴籽家园
+    </div>
+    
+    <!-- 移动端汉堡菜单按钮 -->
+    <button id="mobile-menu-button" class="ml-auto md:hidden text-gray-700 focus:outline-none" title="切换移动端菜单">
+      <span class="iconify text-2xl" data-icon="mdi:menu"></span>
+    </button>
+    
+    <!-- 桌面端导航 -->
+    <nav class="hidden md:flex space-x-6 md:space-x-10 ml-6 md:ml-16 text-gray-700">
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint == 'home.index' else '' }}" href="{{ url_for('home.index') }}">首页</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('culture') else '' }}" href="{{ url_for('culture.engine') }}">文化引擎</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('vr') else '' }}" href="{{ url_for('vr.index') }}">VR体验</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('community') else '' }}" href="{{ url_for('community.index') }}">互动社区</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and (request.endpoint == 'community.dance_selection' or request.endpoint == 'community.dance_practice' or request.endpoint == 'community.dance_result') else '' }}" href="{{ url_for('community.dance_selection') }}">舞蹈练习</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('dashboard') else '' }}" href="{{ url_for('dashboard.index') }}">数据看板</a>
+    </nav>
+    
+    <!-- 桌面端用户操作 -->
+    <div class="hidden md:flex items-center ml-auto space-x-4">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('user.profile') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+          <span class="iconify mr-1" data-icon="mdi:account" data-width="16"></span>
+          {{ current_user.username }}
+        </a>
+        <a href="{{ url_for('user.logout') }}" class="text-gray-700 hover:text-[#E74C3C] px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+          <span class="iconify mr-1" data-icon="mdi:logout" data-width="16"></span>
+          退出登录
+        </a>
+      {% else %}
+        <a href="{{ url_for('user.login') }}" class="mr-4 text-[#3498DB] hover:text-[#2980B9]">登录</a>
+        <a href="{{ url_for('user.register') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition">注册</a>
+      {% endif %}
+    </div>
+    
+    <!-- 移动端导航菜单 -->
+    <div id="mobile-menu" class="absolute top-20 left-0 w-full bg-white shadow-lg hidden md:hidden z-50">
+      <nav class="flex flex-col px-4 py-4 space-y-4 text-gray-700">
+        <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint == 'home.index' else '' }}" href="{{ url_for('home.index') }}">首页</a>
+        <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('culture') else '' }}" href="{{ url_for('culture.engine') }}">文化引擎</a>
+        <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('vr') else '' }}" href="{{ url_for('vr.index') }}">VR体验</a>
+        <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('community') else '' }}" href="{{ url_for('community.index') }}">互动社区</a>
+        <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and (request.endpoint == 'community.dance_selection' or request.endpoint == 'community.dance_practice' or request.endpoint == 'community.dance_result') else '' }}" href="{{ url_for('community.dance_selection') }}">舞蹈练习</a>
+        <a class="py-2 border-b-2 border-transparent hover:nav-active transition {{ 'nav-active' if request.endpoint and request.endpoint.startswith('dashboard') else '' }}" href="{{ url_for('dashboard.index') }}">数据看板</a>
+        {% if current_user.is_authenticated %}
+          <div class="flex flex-col space-y-4 mt-4">
+            <a href="{{ url_for('user.profile') }}" class="text-center py-2 bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white rounded-full hover:shadow-lg transition">
+              <span class="iconify mr-1" data-icon="mdi:account" data-width="16"></span>
+              {{ current_user.username }}
+            </a>
+            <a href="{{ url_for('user.logout') }}" class="text-center py-2 bg-gray-100 text-[#E74C3C] rounded-full hover:bg-gray-200 transition">
+              <span class="iconify mr-1" data-icon="mdi:logout" data-width="16"></span>
+              退出登录
+            </a>
+          </div>
+        {% else %}
+          <div class="flex space-x-4 mt-4">
+            <a href="{{ url_for('user.login') }}" class="flex-1 text-center py-2 bg-gray-100 text-[#3498DB] rounded-full hover:bg-gray-200 transition">登录</a>
+            <a href="{{ url_for('user.register') }}" class="flex-1 text-center py-2 bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white rounded-full hover:shadow-lg transition">注册</a>
+          </div>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  
+  <script>
+    // 移动端菜单切换
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenu.classList.toggle('hidden');
+    });
+  </script>
+  
+  <!-- 主要内容区 -->
+  <main class="pt-20 {% block main_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="bg-[#2C3E50] text-white py-16">
+    <div class="max-w-5xl mx-auto px-4 md:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="text-2xl font-serif mb-4 flex items-center">
+            <span class="iconify mr-2" data-icon="mdi:fruit-grapes"></span>
+            石榴籽家园
+          </div>
+          <p class="text-gray-300 text-sm">
+            各民族共生共荣的线上精神家园，铸牢中华民族共同体意识的教育平台。
+          </p>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li><a class="hover:text-white" href="#">关于我们</a></li>
+            <li><a class="hover:text-white" href="#">平台特色</a></li>
+            <li><a class="hover:text-white" href="#">使用指南</a></li>
+            <li><a class="hover:text-white" href="#">加入我们</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">联系方式</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:email"></span> contact@shiliuzi.org</li>
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:phone"></span> 010-88889999</li>
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:map-marker"></span> 北京市海淀区中关村大街1号</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">关注我们</h4>
+          <div class="flex space-x-4">
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:wechat" data-width="20"></span>
+            </a>
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:weibo" data-width="20"></span>
+            </a>
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:qq" data-width="20"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-gray-700 text-center text-gray-300 text-sm">
+        &copy; 2025 石榴籽家园. All rights reserved.
+      </div>
+    </div>
+  </footer>
+  
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ competition.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dance_new.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-center text-[#2C3E50]">{{ competition.title }}</h2>
+        <p class="text-center text-gray-600 mb-6">{{ '进行中' if competition.status == 'active' else '已结束' }}</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <h5 class="text-lg font-medium text-[#2C3E50] mb-3">比赛详情</h5>
+                <p class="text-gray-700">{{ competition.description }}</p>
+            </div>
+            <div>
+                <h5 class="text-lg font-medium text-[#2C3E50] mb-3">比赛时间</h5>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    <li>开始时间：{{ competition.start_time.strftime('%Y-%m-%d %H:%M') }}</li>
+                    <li>结束时间：{{ competition.end_time.strftime('%Y-%m-%d %H:%M') }}</li>
+                    <li>创建时间：{{ competition.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="text-center mb-6">
+            <a href="{{ url_for('community.dance_selection') }}" class="bg-[#E74C3C] text-white px-8 py-3 rounded-lg hover:bg-[#C0392B] transition mr-4">立即参与</a>
+            <a href="{{ url_for('community.dance_ranking', id=competition.id) }}" class="bg-[#27AE60] text-white px-8 py-3 rounded-lg hover:bg-[#229954] transition">查看排行榜</a>
+        </div>
+    </div>
+    
+    <h3 class="text-xl font-semibold text-center text-[#2C3E50] mb-6">参赛舞蹈列表</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for dance in dances %}
+        <div class="bg-white rounded-lg shadow-sm p-6 h-full">
+            <h5 class="text-lg font-medium text-[#E74C3C] mb-3">{{ dance.title }}</h5>
+            <p class="text-gray-700 mb-4">{{ dance.description[:80] }}...</p>
+            <p class="text-gray-600 mb-4">
+                <small>
+                    民族：{{ dance.ethnicity }}<br>
+                    难度：{{ dance.difficulty }}
+                </small>
+            </p>
+            <a href="{{ url_for('community.dance', id=dance.id) }}" class="bg-[#3498DB] text-white px-6 py-2 rounded-lg hover:bg-[#2980B9] transition">查看详情</a>
+        </div>
+        {% endfor %}
+        
+        {% if dances|length == 0 %}
+        <div class="col-12 text-center py-12">
+            <p class="text-gray-600">暂无参赛舞蹈，敬请期待！</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "layout.html" %}
+
+{% block title %}互动社区 - 石榴籽家园{% endblock %}
+
+{% block head %}
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <!-- 互动社区 -->
+  <section class="py-24 bg-[#FDEDEC]" id="community">
+    <div class="px-28">
+      <div class="text-center mb-20">
+        <h2 class="text-4xl font-serif text-[#2C3E50] mb-4">我们在一起</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">连接各民族学子，共创共享文化交流的美好时刻</p>
+      </div>
+      <div class="grid grid-cols-3 gap-8">
+        <!-- 任务系统 -->
+        <div class="col-span-2 bg-white rounded-2xl shadow-xl p-8">
+          <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-semibold text-[#E74C3C]">共学共乐任务</h3>
+            <a href="{{ url_for('community.tasks') }}" class="text-[#3498DB] hover:text-[#2980B9]" title="查看全部任务">查看全部</a>
+          </div>
+          <div class="space-y-6">
+            <!-- 动态任务卡片 -->
+            {% if tasks %}
+              {% for task in tasks %}
+                {% set user_task = user_tasks.get(task.id) %}
+                {% set progress = user_task.progress if user_task else 0 %}
+                <div class="bg-gray-50 p-6 rounded-xl border-l-4" style="border-left-color: {{ task.color }}">
+                  <div class="flex items-start">
+                    <div class="flex-shrink-0" style="background-color: {{ task.color }}; color: white; width: 120px; height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 20px;">
+                      <span class="iconify" data-icon="{{ task.icon }}" data-width="48"></span>
+                    </div>
+                    <div class="flex-grow">
+                      <h4 class="font-semibold text-xl mb-2">{{ task.title }}</h4>
+                      <p class="text-gray-600 mb-4">{{ task.description }}</p>
+                      <div class="flex items-center">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div class="bg-[#27AE60] h-2 rounded-full" style="width: {{ progress }}%"></div>
+                        </div>
+                        <span class="ml-4 text-sm text-gray-600">{{ progress }}%完成</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center py-12 text-gray-500">
+                <p>暂无任务，敬请期待！</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- 故事杂货铺 -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+          <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-semibold text-[#E74C3C]">故事杂货铺</h3>
+            <a href="{{ url_for('community.stories') }}" class="text-[#3498DB] hover:text-[#2980B9] flex items-center">
+              更多故事 <span class="iconify ml-1" data-icon="mdi:chevron-right" data-width="16"></span>
+            </a>
+          </div>
+          <div class="space-y-6">
+            <div class="p-4 border border-gray-200 rounded-lg hover:border-[#E74C3C] transition">
+              <div class="flex items-center mb-3">
+                <img alt="用户头像 - 藏族学生" class="w-10 h-10 rounded-full mr-3" id="user-1" src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/877982c52ef84ee69dfb5feea2120ab9.jpg"/>
+                <div>
+                  <div class="font-semibold">卓玛</div>
+                  <div class="text-sm text-gray-500">藏族·北京师范大学</div>
+                </div>
+              </div>
+              <p class="text-gray-700 line-clamp-3">第一次和汉族同学一起过藏历新年，教他们做酥油茶...（阅读更多）</p>
+              <div class="flex justify-between mt-3 text-sm text-gray-500">
+                <div>2小时前</div>
+                <div class="flex space-x-4">
+                  <span>128 ❤️</span>
+                  <span>24 💬</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-lg hover:border-[#E74C3C] transition">
+              <div class="flex items-center mb-3">
+                <img alt="用户头像 - 汉族学生" class="w-10 h-10 rounded-full mr-3" id="user-2" src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/51e85d69689147afadd655efbb23f311.jpg"/>
+                <div>
+                  <div class="font-semibold">张浩然</div>
+                  <div class="text-sm text-gray-500">汉族·云南大学</div>
+                </div>
+              </div>
+              <p class="text-gray-700 line-clamp-3">参加了傣族泼水节，感受到不同文化中的欢乐与祝福...（阅读更多）</p>
+              <div class="flex justify-between mt-3 text-sm text-gray-500">
+                <div>1天前</div>
+                <div class="flex space-x-4">
+                  <span>89 ❤️</span>
+                  <span>16 💬</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a href="{{ url_for('community.create_story') }}" class="w-full mt-8 bg-gradient-to-r from-[#8E44AD] to-[#3498DB] text-white py-3 rounded-lg inline-block text-center">
+            分享我的故事
+          </a>
+        </div>
+      </div>
+      <!-- 同跳一支舞活动 -->
+      <div class="mt-16 bg-white rounded-2xl shadow-xl p-8">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-2xl font-semibold text-[#E74C3C]">同跳一支舞·民族舞蹈模仿赛</h3>
+            <p class="text-gray-600">上传民族舞蹈视频，AI识别动作准确度并评分</p>
+          </div>
+          <a href="{{ url_for('community.dance_selection') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-8 py-3 rounded-lg inline-block">
+            立即参与
+          </a>
+        </div>
+        <div class="mt-6 grid grid-cols-4 gap-4">
+          <div class="bg-gray-100 aspect-square rounded-xl flex items-center justify-center">
+            <img alt="民族舞蹈示范 - 藏族舞蹈动作" class="w-full h-full object-cover" id="dance-1" src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/fd7faf0634b24eee90757cca666a1505.jpg"/>
+          </div>
+          <div class="bg-gray-100 aspect-square rounded-xl flex items-center justify-center">
+            <img alt="民族舞蹈示范 - 蒙古族舞蹈动作" class="w-full h-full object-cover" id="dance-2" src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/bd0cb4f15ddf4783ac1ea0192c1d0b59.jpg"/>
+          </div>
+          <div class="bg-gray-100 aspect-square rounded-xl flex items-center justify-center">
+            <img alt="民族舞蹈示范 - 哈萨克族舞蹈动作" class="w-full h-full object-cover" id="dance-3" src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/90885c005c21408e8242e893e0f87c8e.jpg"/>
+          </div>
+          <div class="bg-gray-100 aspect-square rounded-xl flex items-center justify-center">
+            <img alt="民族舞蹈示范 - 彝族舞蹈动作" class="w-full h-full object-cover" id="dance-4" src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/d2f09a3eca744b76b4f39db8e5a02d18.jpg"/>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 社区帖子列表 -->
+      <div class="mt-16">
+        <div class="flex flex-wrap justify-between items-center mb-8">
+          <h3 class="text-2xl font-semibold text-[#E74C3C] mb-4 md:mb-0">社区帖子</h3>
+          <div class="flex items-center space-x-4">
+            <div class="flex flex-wrap gap-2">
+              <a href="{{ url_for('community.index') }}" class="px-4 py-2 rounded-full transition {{ 'bg-[#E74C3C] text-white' if not request.args.get('category') else 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+                全部
+              </a>
+              {% for category in categories %}
+                <a href="{{ url_for('community.index', category=category) }}" class="px-4 py-2 rounded-full transition {{ 'bg-[#E74C3C] text-white' if request.args.get('category') == category else 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+                  {{ category }}
+                </a>
+              {% endfor %}
+            </div>
+            <a href="{{ url_for('community.create') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-2 rounded-full">
+              发布新帖
+            </a>
+          </div>
+        </div>
+        
+        <div class="space-y-6">
+          {% for post in posts %}
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+            <h3 class="text-xl font-semibold text-[#2C3E50] mb-2">{{ post.title }}</h3>
+            <p class="text-gray-600 mb-4">{{ post.content[:150] }}...</p>
+            <div class="flex items-center text-gray-500 text-sm">
+              <span class="iconify mr-1" data-icon="mdi:calendar"></span>
+              <span class="mr-4">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+              <span class="iconify mr-1" data-icon="mdi:comment-outline"></span>
+              <span class="mr-4">{{ post.comments | length }}</span>
+              <span class="iconify mr-1" data-icon="mdi:eye"></span>
+              <span>128</span>
+              <a href="{{ url_for('community.post', id=post.id) }}" class="ml-auto text-[#E74C3C] hover:text-[#C0392B]">查看详情</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

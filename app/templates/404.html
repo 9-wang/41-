@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}页面未找到 - 石榴籽家园{% endblock %}
+
+{% block main_class %}py-24{% endblock %}
+
+{% block content %}
+  <div class="max-w-2xl mx-auto text-center">
+    <div class="text-12xl font-bold text-gray-200 mb-8">404</div>
+    <h1 class="text-4xl font-serif text-[#2C3E50] mb-6">页面未找到</h1>
+    <p class="text-xl text-gray-600 mb-8">很抱歉，您访问的页面不存在或已被移动</p>
+    <a href="{{ url_for('home.index') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-8 py-3 rounded-lg font-medium hover:shadow-xl transition-transform hover:scale-105 inline-block">
+      返回首页
+    </a>
+  </div>
+{% endblock %}

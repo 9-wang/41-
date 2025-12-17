@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+{% block title %}个人中心 - 石榴籽家园{% endblock %}
+
+{% block content %}
+  <!-- 用户个人信息 -->
+  <section class="py-24 px-28 bg-[#ECF0F1]">
+    <div class="bg-white rounded-2xl shadow-xl p-12 max-w-4xl mx-auto">
+      <div class="flex items-center space-x-8 mb-12">
+        <div class="relative">
+          <img 
+            src="{{ user.avatar or 'https://via.placeholder.com/150' }}" 
+            alt="{{ user.username }}" 
+            class="w-32 h-32 rounded-full border-4 border-[#E74C3C] shadow-lg"
+          />
+          <a href="#" class="absolute bottom-0 right-0 bg-[#F39C12] text-white p-2 rounded-full hover:bg-[#E74C3C] transition">
+            <span class="iconify" data-icon="mdi:camera" data-width="18"></span>
+          </a>
+        </div>
+        <div>
+          <h2 class="text-3xl font-serif text-[#2C3E50] mb-2">{{ user.username }}</h2>
+          <p class="text-gray-600 mb-4">{{ user.email }}</p>
+          <div class="flex space-x-4">
+            <a href="{{ url_for('user.edit_profile') }}" class="bg-[#3498DB] text-white px-6 py-2 rounded-lg hover:shadow-lg transition">
+              <span class="iconify mr-1" data-icon="mdi:pencil" data-width="16"></span>
+              编辑资料
+            </a>
+            <button class="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:shadow-lg transition">
+              <span class="iconify mr-1" data-icon="mdi:account-edit" data-width="16"></span>
+              更改密码
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- 我的收藏 -->
+  <section class="py-24 px-28 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-serif text-[#2C3E50] mb-12">我的收藏</h2>
+      
+      {% if favorites %} 
+        <div class="grid grid-cols-3 gap-8">
+          {% for poster in favorites %} 
+            <div class="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition">
+              <div class="bg-gray-100 rounded-xl p-4 flex items-center justify-center mb-4">
+                <img 
+                  src="{{ url_for('static', filename=poster.generated_image) }}" 
+                  alt="{{ poster.title or '生成海报' }}" 
+                  class="max-h-64 rounded-lg"
+                />
+              </div>
+              
+              <h3 class="text-lg font-semibold text-[#2C3E50] mb-2">
+                {{ poster.title or '未命名海报' }}
+              </h3>
+              
+              {% if poster.ethnic_elements %} 
+                <div class="flex flex-wrap gap-2 mb-4">
+                  {% for element in poster.ethnic_elements.split(', ') %} 
+                    <span class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white text-xs px-3 py-1 rounded-full">
+                      {{ element }}
+                    </span>
+                  {% endfor %} 
+                </div>
+              {% endif %} 
+              
+              <div class="flex justify-between items-center">
+                <form method="POST" action="{{ url_for('culture.favorite', id=poster.id) }}">
+                  {{ form.hidden_tag() }}
+                  <button type="submit" class="flex items-center space-x-1 text-[#E74C3C] hover:text-[#C0392B] transition">
+                    <span class="iconify" data-icon="mdi:heart" data-width="20"></span>
+                    <span>取消收藏</span>
+                  </button>
+                </form>
+                <a href="{{ url_for('static', filename=poster.generated_image) }}" download class="flex items-center space-x-1 text-[#3498DB] hover:text-[#2980B9] transition">
+                  <span class="iconify" data-icon="mdi:download" data-width="20"></span>
+                  <span>下载</span>
+                </a>
+              </div>
+            </div>
+          {% endfor %} 
+        </div>
+      {% else %} 
+        <div class="text-center py-24">
+          <span class="iconify text-[#BDC3C7]" data-icon="mdi:heart-outline" data-width="96"></span>
+          <h3 class="text-2xl font-semibold text-[#2C3E50] mb-4 mt-8">您还没有收藏任何海报</h3>
+          <a href="{{ url_for('culture.engine') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-8 py-4 rounded-full hover:shadow-lg transition">
+            <span class="iconify mr-2" data-icon="mdi:camera-plus" data-width="20"></span>
+            去生成并收藏海报
+          </a>
+        </div>
+      {% endif %} 
+    </div>
+  </section>
+  
+  <!-- Form for CSRF protection -->
+  {% if current_user.is_authenticated %}
+    <form id="favorite-form" method="POST" style="display: none;">
+      {{ form.hidden_tag() }}
+    </form>
+  {% endif %}
+{% endblock %}

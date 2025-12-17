@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+
+{% block title %}参赛作品详情{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dance_new.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="card-body">
+            <h2 class="text-2xl font-semibold text-center text-[#2C3E50]">参赛作品详情</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                    <h5 class="text-lg font-medium text-[#2C3E50] mb-3">作品信息</h5>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                        <li>作品ID：{{ submission.id }}</li>
+                        <li>参赛用户：{{ submission.user.username }}</li>
+                        <li>参赛舞蹈：{{ submission.dance.title }}</li>
+                        <li>所属比赛：{{ submission.dance.competition.title }}</li>
+                        <li>提交时间：{{ submission.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+                        <li>状态：{{ '待评分' if submission.status == 'pending' else '已评分' }}</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-lg font-medium text-[#2C3E50] mb-3">AI评分结果</h5>
+                    {% if submission.status == 'scored' %}
+                        <div class="text-center mb-4">
+                            <h3 class="text-4xl font-bold text-[#E74C3C]">{{ submission.score }}</h3>
+                            <p class="text-gray-600">总分</p>
+                        </div>
+                        
+                        <h6 class="text-center mb-4 text-[#2C3E50]">评分详情</h6>
+                        
+                        {% if submission.accuracy is not none %}
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-medium text-gray-700">动作准确性</span>
+                                    <span class="text-sm font-semibold text-[#2C3E50]">{{ submission.accuracy }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-[#3498DB] h-2 rounded-full" style="width: {{ submission.accuracy }}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-medium text-gray-700">节奏把握</span>
+                                    <span class="text-sm font-semibold text-[#2C3E50]">{{ submission.rhythm }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-[#27AE60] h-2 rounded-full" style="width: {{ submission.rhythm }}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-medium text-gray-700">表现力</span>
+                                    <span class="text-sm font-semibold text-[#2C3E50]">{{ submission.expression }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-[#F39C12] h-2 rounded-full" style="width: {{ submission.expression }}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-medium text-gray-700">完整性</span>
+                                    <span class="text-sm font-semibold text-[#2C3E50]">{{ submission.completeness }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-[#E74C3C] h-2 rounded-full" style="width: {{ submission.completeness }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="space-y-2">
+                            {% for key, value in submission.score_details.items() %}
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-medium text-gray-700">{{ key }}</span>
+                                    <span class="text-sm font-semibold text-[#2C3E50]">{{ value }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-[#3498DB] h-2 rounded-full" style="width: {{ value * 10 }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E74C3C] mx-auto mb-4"></div>
+                            <p class="text-gray-600">正在进行AI评分，请稍候刷新页面查看结果</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <h5 class="text-lg font-medium text-center text-[#2C3E50] mt-8 mb-4">参赛视频</h5>
+            <div class="relative rounded-lg overflow-hidden mb-6">
+                <video class="w-full" controls>
+                    <source src="{{ submission.video_url }}" type="video/mp4">
+                    您的浏览器不支持视频播放。
+                </video>
+            </div>
+            
+            <div class="flex justify-center space-x-4 mt-6">
+                <a href="{{ url_for('community.dance', id=submission.dance.id) }}" class="px-6 py-2 bg-[#E74C3C] text-white rounded-lg hover:bg-[#C0392B] transition">返回舞蹈详情</a>
+                <button class="px-6 py-2 bg-[#3498DB] text-white rounded-lg hover:bg-[#2980B9] transition" id="share-btn">分享作品</button>
+            </div>
+            
+            <!-- 分享弹窗 -->
+            <div id="share-modal" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">分享参赛作品</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-4">
+                                <label for="share-link" class="form-label">分享链接</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="share-link" value="{{ url_for('community.dance_submission', id=submission.id, _external=True) }}" readonly>
+                                    <button class="btn btn-primary" type="button" id="copy-link">复制链接</button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6>分享到社交平台</h6>
+                                <div class="d-flex justify-content-around">
+                                    <!-- 微信分享 -->
+                                    <a href="javascript:void(0)" class="share-platform" data-platform="wechat">
+                                        <div class="share-icon bg-green-500 text-white p-3 rounded-full">
+                                            <span class="iconify" data-icon="mdi:wechat" data-width="24"></span>
+                                        </div>
+                                        <p class="mt-2 text-sm">微信</p>
+                                    </a>
+                                    <!-- 微博分享 -->
+                                    <a href="javascript:void(0)" class="share-platform" data-platform="weibo">
+                                        <div class="share-icon bg-red-500 text-white p-3 rounded-full">
+                                            <span class="iconify" data-icon="mdi:weibo" data-width="24"></span>
+                                        </div>
+                                        <p class="mt-2 text-sm">微博</p>
+                                    </a>
+                                    <!-- QQ分享 -->
+                                    <a href="javascript:void(0)" class="share-platform" data-platform="qq">
+                                        <div class="share-icon bg-blue-500 text-white p-3 rounded-full">
+                                            <span class="iconify" data-icon="mdi:qq" data-width="24"></span>
+                                        </div>
+                                        <p class="mt-2 text-sm">QQ</p>
+                                    </a>
+                                    <!-- 复制链接 -->
+                                    <a href="javascript:void(0)" id="copy-link-btn" class="share-platform">
+                                        <div class="share-icon bg-gray-500 text-white p-3 rounded-full">
+                                            <span class="iconify" data-icon="mdi:link" data-width="24"></span>
+                                        </div>
+                                        <p class="mt-2 text-sm">复制链接</p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                // 分享功能实现
+                document.addEventListener('DOMContentLoaded', function() {
+                    const shareBtn = document.getElementById('share-btn');
+                    const shareModal = document.getElementById('share-modal');
+                    const copyLinkBtn = document.getElementById('copy-link');
+                    const copyLinkBtn2 = document.getElementById('copy-link-btn');
+                    const shareLink = document.getElementById('share-link');
+                    const sharePlatforms = document.querySelectorAll('.share-platform');
+                    
+                    // 显示分享弹窗
+                    shareBtn.addEventListener('click', function() {
+                        $(shareModal).modal('show');
+                    });
+                    
+                    // 复制链接
+                    function copyToClipboard() {
+                        shareLink.select();
+                        shareLink.setSelectionRange(0, 99999);
+                        document.execCommand('copy');
+                        alert('链接复制成功！');
+                    }
+                    
+                    copyLinkBtn.addEventListener('click', copyToClipboard);
+                    copyLinkBtn2.addEventListener('click', function() {
+                        copyToClipboard();
+                        $(shareModal).modal('hide');
+                    });
+                    
+                    // 记录分享
+                    function recordShare(platform) {
+                        fetch('/api/dance/share', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                submission_id: {{ submission.id }},
+                                platform: platform
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('分享记录成功:', data);
+                        })
+                        .catch(error => {
+                            console.error('分享记录失败:', error);
+                        });
+                    }
+                    
+                    // 社交平台分享
+                    sharePlatforms.forEach(platform => {
+                        platform.addEventListener('click', function() {
+                            const platformType = this.getAttribute('data-platform');
+                            const url = shareLink.value;
+                            const title = '我在石榴籽家园参加了民族舞蹈模仿赛，快来看看我的作品！';
+                            const summary = '参赛作品：{{ submission.dance.title }} - {{ submission.score }}分';
+                            
+                            // 记录分享
+                            recordShare(platformType);
+                            
+                            let shareUrl = '';
+                            if (platformType === 'weibo') {
+                                shareUrl = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}`;
+                            } else if (platformType === 'qq') {
+                                shareUrl = `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}`;
+                            }
+                            
+                            if (shareUrl) {
+                                window.open(shareUrl, '_blank', 'width=600,height=400');
+                            }
+                        });
+                    });
+                });
+            </script>
+        </div>
+    </div>
+</div>
+{% endblock %}

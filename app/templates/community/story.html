@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ story.title }} - 石榴籽家园{% endblock %}
+
+{% block content %}
+<section class="py-12 px-28">
+  <div class="bg-white rounded-2xl shadow-xl p-8">
+    <!-- 故事标题 -->
+    <h1 class="text-3xl font-serif text-[#2C3E50] mb-6">{{ story.title }}</h1>
+    
+    <!-- 作者信息 -->
+    <div class="flex items-center mb-8 border-b border-gray-200 pb-6">
+      <img 
+        src="{{ story.author.avatar or 'https://via.placeholder.com/60' }}" 
+        alt="{{ story.author.username }}" 
+        class="w-12 h-12 rounded-full mr-4"
+      />
+      <div>
+        <div class="font-semibold text-lg">{{ story.author.username }}</div>
+        <div class="text-sm text-gray-500">{{ story.ethnicity }} · {{ story.school }}</div>
+      </div>
+      <div class="ml-auto text-sm text-gray-500">
+        {{ story.created_at.strftime('%Y-%m-%d %H:%M') }}
+      </div>
+    </div>
+    
+    <!-- 故事内容 -->
+    <div class="prose max-w-none mb-8">
+      <p class="text-gray-700 text-lg leading-relaxed whitespace-pre-wrap">{{ story.content }}</p>
+    </div>
+    
+    <!-- 互动按钮 -->
+    <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+      {% if current_user.is_authenticated %}
+        <button id="like-button" data-story-id="{{ story.id }}" class="flex items-center text-[#E74C3C] hover:text-[#C0392B] transition" title="点赞这个故事">
+          <span class="iconify mr-2" data-icon="mdi:heart" data-width="20"></span>
+          <span id="likes-count">{{ story.likes }} 喜欢</span>
+        </button>
+      {% else %}
+        <a href="{{ url_for('user.login') }}" class="flex items-center text-[#E74C3C] hover:text-[#C0392B] transition">
+          <span class="iconify mr-2" data-icon="mdi:heart" data-width="20"></span>
+          <span>{{ story.likes }} 喜欢</span>
+        </a>
+      {% endif %}
+      
+      <div class="flex items-center text-gray-500">
+        <span class="iconify mr-2" data-icon="mdi:comment-outline" data-width="20"></span>
+        <span>{{ story.comments_count }} 评论</span>
+      </div>
+      
+      <a href="{{ url_for('community.stories') }}" class="bg-gray-200 text-[#2C3E50] px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+        返回故事列表
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // 点赞功能的前端交互
+  document.addEventListener('DOMContentLoaded', function() {
+    const likeButton = document.getElementById('like-button');
+    if (likeButton) {
+      likeButton.addEventListener('click', function() {
+        const storyId = this.dataset.storyId;
+        fetch(`/community/like/story/${storyId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 更新点赞数显示
+            const likesCount = document.getElementById('likes-count');
+            likesCount.textContent = data.likes + ' 喜欢';
+            
+            // 更新按钮状态
+            if (data.liked) {
+              likeButton.classList.add('text-red-500');
+              likeButton.classList.remove('text-[#E74C3C]');
+            } else {
+              likeButton.classList.remove('text-red-500');
+              likeButton.classList.add('text-[#E74C3C]');
+            }
+          } else {
+            // 如果未登录，重定向到登录页面
+            if (data.login_required) {
+              window.location.href = '/user/login';
+            } else if (data.message) {
+              alert(data.message);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('点赞失败，请稍后重试');
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}

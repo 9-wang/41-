@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}故事杂货铺 - 石榴籽家园{% endblock %}
+
+{% block content %}
+  <section class="py-12 px-28 bg-[#FDEDEC]">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-serif text-[#2C3E50] mb-4">故事杂货铺</h2>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">各民族学子分享的文化故事，连接心灵的桥梁</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      {% for story in stories %}
+        <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition">
+          <div class="flex items-center mb-4">
+            <img 
+              src="{{ story.author.avatar or 'https://via.placeholder.com/40' }}" 
+              alt="{{ story.author.username }}" 
+              class="w-10 h-10 rounded-full mr-3"
+            />
+            <div>
+              <div class="font-semibold">{{ story.author.username }}</div>
+              <div class="text-sm text-gray-500">{{ story.ethnicity }} · {{ story.school }}</div>
+            </div>
+          </div>
+          
+          <h3 class="text-xl font-semibold text-[#2C3E50] mb-3 hover:text-[#E74C3C] transition">
+            <a href="{{ url_for('community.story', id=story.id) }}">{{ story.title }}</a>
+          </h3>
+          
+          <p class="text-gray-700 line-clamp-3 mb-4">{{ story.content }}</p>
+          
+          <div class="flex justify-between items-center text-sm text-gray-500">
+            <div>{{ story.created_at.strftime('%Y-%m-%d') }}</div>
+            <div class="flex space-x-6">
+              <span class="flex items-center"><span class="iconify mr-1" data-icon="mdi:heart" data-width="16"></span> {{ story.likes }}</span>
+              <span class="flex items-center"><span class="iconify mr-1" data-icon="mdi:comment-outline" data-width="16"></span> {{ story.comments_count }}</span>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-span-full text-center py-16 bg-white rounded-2xl shadow-lg">
+          <div class="text-gray-400 mb-4"><span class="iconify" data-icon="mdi:book-open-variant" data-width="48"></span></div>
+          <h3 class="text-xl font-medium text-gray-500 mb-2">还没有故事分享</h3>
+          <p class="text-gray-400 mb-6">成为第一个分享故事的人吧！</p>
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('community.create_story') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-3 rounded-lg hover:shadow-lg transition">
+              分享我的故事
+            </a>
+          {% else %}
+            <a href="{{ url_for('user.login') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-3 rounded-lg hover:shadow-lg transition">
+              登录分享故事
+            </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

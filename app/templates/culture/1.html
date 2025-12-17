@@ -1,0 +1,1934 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧文化交融引擎 - 中华民族文化知识图谱</title>
+    <script src="https://cdn.tailwindcss.com/3.3.3"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.5.0/mermaid.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="min-h-screen">
+    <!-- 标题区 -->
+    <header class="header py-8 px-4 md:px-8">
+        <div class="container mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">智慧文化交融引擎</h1>
+            <p class="text-lg md:text-xl opacity-90">探索中华各民族物质文化的深层连接，AI助力发现共同的精神基因</p>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="container mx-auto py-8 px-4 md:px-8">
+        <!-- 搜索框 -->
+        <div class="search-container flex items-center justify-center w-full mt-4 mb-8">
+            <div class="relative w-full max-w-md">
+                <input type="text" id="searchInput" placeholder="搜索文化相关内容（物质类型、民族、文化内涵）..." 
+                       class="w-full px-4 py-2 pl-10 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <!-- 搜索建议下拉框 -->
+                <div id="searchSuggestions" class="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 hidden max-h-60 overflow-y-auto">
+                </div>
+            </div>
+        </div>
+        <!-- 搜索结果统计 -->
+        <div id="searchResultsStats" class="text-center text-sm text-gray-500 mb-4 hidden">
+            找到 <span id="resultsCount">0</span> 个相关结果
+        </div>
+        
+        <!-- 当前筛选状态 -->
+        <div id="filterStatus" class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-gray-700 font-medium">当前筛选:</span>
+                <span id="currentMaterialStatus" class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm">茶</span>
+                <span id="currentEthnicStatus" class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm">全部</span>
+            </div>
+            <button id="resetFilters" class="btn-secondary text-sm px-4 py-1 rounded-full flex items-center gap-1 hover:bg-gray-200 transition-colors" title="重置所有筛选条件">
+                <i class="fas fa-sync-alt"></i> 重置筛选
+            </button>
+        </div>
+        
+        <div class="layout flex flex-col md:flex-row gap-8">
+            <!-- 左侧图谱可视化区域 -->
+            <div class="map-container md:w-2/3 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">中华民族文化知识图谱</h2>
+                    <div class="zoom-controls flex items-center gap-2">
+                        <button id="zoomOutBtn" class="btn-secondary px-3 py-1 rounded-md text-sm" title="缩小视图">
+                            <i class="fas fa-search-minus mr-1"></i> 缩小
+                        </button>
+                        <span id="zoomLevel" class="text-sm text-gray-600 w-12 text-center">100%</span>
+                        <button id="zoomInBtn" class="btn-secondary px-3 py-1 rounded-md text-sm" title="放大视图">
+                            <i class="fas fa-search-plus mr-1"></i> 放大
+                        </button>
+                        <button id="resetZoomBtn" class="btn-secondary px-3 py-1 rounded-md text-sm" title="重置缩放">
+                            <i class="fas fa-sync-alt mr-1"></i> 重置
+                        </button>
+                    </div>
+                </div>
+                <div class="mermaid-container overflow-auto" id="mermaid-diagram" style="position: relative;">
+                    <!-- 这里将由mermaid动态渲染知识图谱 -->
+                </div>
+            </div>
+
+            <!-- 右侧探索面板 -->
+            <div class="sidebar md:w-1/3 p-6">
+                <h2 class="text-xl font-bold mb-6 text-gray-800">探索面板</h2>
+                
+                <!-- 物质类型选择区 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">物质类型</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm active" data-material="茶">
+                            <i class="fas fa-leaf mr-1"></i> 茶
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="丝绸">
+                            <i class="fas fa-tshirt mr-1"></i> 丝绸
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="陶瓷">
+                            <i class="fas fa-mug-hot mr-1"></i> 陶瓷
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="中医药">
+                            <i class="fas fa-pills mr-1"></i> 中医药
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="乐器">
+                            <i class="fas fa-music mr-1"></i> 乐器
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="建筑">
+                            <i class="fas fa-home mr-1"></i> 建筑
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="服饰">
+                            <i class="fas fa-tshirt mr-1"></i> 服饰
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="饮食">
+                            <i class="fas fa-utensils mr-1"></i> 饮食
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm" data-material="工艺">
+                            <i class="fas fa-tools mr-1"></i> 工艺
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 关键词输入区 -->
+                <div class="mb-8">
+                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-2">搜索关键词</label>
+                    <div class="flex gap-3">
+                        <input type="text" id="keyword" class="input-field flex-1" value="" placeholder="输入文化关键词">
+                        <button id="search-btn" class="btn-primary px-4 py-2 rounded-md font-medium">
+                            <i class="fas fa-search mr-1"></i> 探索
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 民族筛选区 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">民族筛选</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm active">
+                            <i class="fas fa-globe mr-1"></i> 全部
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-leaf mr-1"></i> 汉族
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-mountain mr-1"></i> 藏族
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-horse mr-1"></i> 蒙古族
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-utensils mr-1"></i> 维吾尔族
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-drum mr-1"></i> 苗族
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-fire mr-1"></i> 彝族
+                        </button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-water mr-1"></i> 傣族
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 民族印象生成器 -->
+                <div class="民族印象生成器 p-5">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800">我的民族文化印象生成器</h3>
+                    <p class="text-sm text-gray-600 mb-4">选择一个民族，生成属于你的民族文化印象卡片</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4" id="ethnicCardSelect">
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">汉族</button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">藏族</button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">蒙古族</button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">维吾尔族</button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">苗族</button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">彝族</button>
+                        <button class="btn-secondary px-3 py-1 rounded-md text-sm">傣族</button>
+                    </div>
+                    
+                    <button class="btn-primary w-full py-2 rounded-md font-medium" id="generateCardBtn">
+                        <i class="fas fa-magic mr-1"></i> 生成印象卡片
+                    </button>
+                    
+                    <!-- 生成的印象卡片显示区域 -->
+                    <div id="generatedCard" class="mt-6 hidden">
+                        <div class="card p-4 border-2 border-blue-200">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-image text-4xl text-blue-500"></i>
+                            </div>
+                            <h4 id="cardTitle" class="text-xl font-bold text-center mb-2"></h4>
+                            <div id="cardContent" class="text-gray-700 space-y-2"></div>
+                            <div class="mt-4 text-center">
+                                <button class="btn-secondary px-3 py-1 rounded-md text-sm" id="saveCardBtn">
+                                    <i class="fas fa-download mr-1"></i> 保存卡片
+                                </button>
+                                <button class="btn-secondary px-3 py-1 rounded-md text-sm ml-2" id="regenerateCardBtn">
+                                    <i class="fas fa-redo mr-1"></i> 重新生成
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 文化知识详情区 -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">民族物质文化知识详情</h2>
+            <div id="detailCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 历史渊源区 -->
+        <div class="mt-12 card p-6">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">物质文化历史渊源</h2>
+            <p class="text-gray-700">中华各民族的物质文化通过贸易、迁徙、交流等方式相互影响、融合发展。这些物质文化不仅是日常生活的必需品，更是连接各民族文化的重要纽带，促进了各民族之间的经济交流和文化融合。</p>
+        </div>
+    </main>
+
+    <!-- 底部数据来源区 -->
+    <footer class="data-source mt-12 py-8 px-4 md:px-8 bg-gray-50">
+        <div class="container mx-auto">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">权威数据来源</h3>
+            
+            <!-- 按物质类型分类的数据源 -->
+            <div class="mb-8">
+                <h4 class="text-md font-medium mb-3 text-gray-700">茶文化</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="https://www.neac.gov.cn/seac/xxgk/202501/1178855.shtml" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 国家民族事务委员会 - 民族茶文化
+                    </a>
+                    <a href="https://zwfw.mct.gov.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 文化和旅游部政务服务门户
+                    </a>
+                    <a href="http://www.cass.cn/gaikuang/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国社会科学院古代史研究所
+                    </a>
+                    <a href="https://www.cta-cq.org.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国茶叶流通协会
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h4 class="text-md font-medium mb-3 text-gray-700">丝绸文化</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="http://www.chinasilkmuseum.com/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国丝绸博物馆
+                    </a>
+                    <a href="https://www.mct.gov.cn/whzx/whys/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 文化和旅游部 - 文化遗产
+                    </a>
+                    <a href="https://www.cta.com.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国纺织工业联合会
+                    </a>
+                    <a href="https://www.chnmuseum.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国国家博物馆 - 纺织文物
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h4 class="text-md font-medium mb-3 text-gray-700">陶瓷文化</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="https://www.dpm.org.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 故宫博物院 - 陶瓷馆
+                    </a>
+                    <a href="https://www.ceramsg.com/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国古陶瓷学会
+                    </a>
+                    <a href="https://www.chnmuseum.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国国家博物馆 - 陶瓷器
+                    </a>
+                    <a href="http://www.ccclt.org.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国陶瓷工业协会
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h4 class="text-md font-medium mb-3 text-gray-700">中医药文化</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="https://www.natcm.gov.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 国家中医药管理局
+                    </a>
+                    <a href="https://www.nhc.gov.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 国家卫生健康委员会
+                    </a>
+                    <a href="https://www.cacms.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国中医科学院
+                    </a>
+                    <a href="https://www.nmpa.gov.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 国家药品监督管理局
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h4 class="text-md font-medium mb-3 text-gray-700">乐器文化</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="https://www.cflac.org.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国文学艺术界联合会
+                    </a>
+                    <a href="https://www.ncfta.gov.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国艺术研究院
+                    </a>
+                    <a href="https://www.ccom.edu.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中央音乐学院
+                    </a>
+                    <a href="https://www.chnmuseum.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国国家博物馆 - 乐器文物
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mb-8">
+                <h4 class="text-md font-medium mb-3 text-gray-700">民族研究与保护</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="https://www.neac.gov.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 国家民族事务委员会（主站）
+                    </a>
+                    <a href="http://www.mzbwg.org.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国民族博物馆
+                    </a>
+                    <a href="https://www.cass.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中国社会科学院
+                    </a>
+                    <a href="http://www.mw.org.cn/" class="text-blue-600 hover:underline flex items-center">
+                        <i class="fas fa-link mr-2"></i> 中华民族网
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-sm text-gray-500">
+                <p>created by <a href="https://space.coze.cn" class="text-blue-600 hover:underline">coze space</a></p>
+                <p class="mt-1">本网站数据均来源于权威机构，仅供学术研究与文化传承参考</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 民族文化知识图谱数据
+        const cultureData = {
+            "materials": {
+                "茶": {
+                    "central_topic": "茶",
+                    "description": "中华民族共同的文化符号，通过贸易和文化交流成为连接各民族的重要纽带",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "传统茶艺、工夫茶、陆羽《茶经》为代表的茶文化体系",
+                            "customs": "文人茶道、节日饮茶（如春节、中秋）",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/202501/1178855.shtml"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "酥油茶为核心，将砖茶与酥油、盐巴混合熬制",
+                            "customs": "待客礼仪、宗教仪式中的茶供养",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "奶茶（砖茶与牛奶、盐巴煮制）",
+                            "customs": "三餐必备、待客首礼",
+                            "data_source": "http://bridge.chinese.cn/online/camp/class/104623/10251/1683"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "茯砖茶煮制，分南疆（加香料）与北疆（加鲜奶）两种方式",
+                            "customs": "日常饮用、节庆聚会",
+                            "data_source": "https://www.mct.gov.cn/zwfw/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "油茶（将茶叶、生姜、盐巴、花生等混合熬制）",
+                            "customs": "早餐必备、待客礼仪",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "烤茶（将茶叶烤至微焦后冲泡），又称百抖茶",
+                            "customs": "家庭聚会、节庆活动",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "竹筒茶（将茶叶装入新鲜竹筒中烘烤）",
+                            "customs": "日常饮用、礼赠佳品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "唐代通过茶马互市传入少数民族地区，《封氏闻见记》《新唐书》均有记载",
+                    "data_sources": [
+                        "中华人民共和国国家民族事务委员会官网: https://www.neac.gov.cn/",
+                        "文化和旅游部政务服务门户: https://zwfw.mct.gov.cn/",
+                        "中国社会科学院古代史研究所: http://www.cass.cn/gaikuang/"
+                    ]
+                },
+                "丝绸": {
+                    "central_topic": "丝绸",
+                    "description": "中华文明的重要象征，通过丝绸之路促进了东西方文化交流",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "桑蚕养殖、缫丝织绸、四大名绣（苏绣、湘绣、粤绣、蜀绣）",
+                            "customs": "丝绸服饰、丝绸礼品、丝绸书画装裱",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "艾德莱斯绸，采用扎经染色工艺，色彩鲜艳",
+                            "customs": "传统服饰、节庆装饰",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "织金锦，以金线织入，富丽堂皇",
+                            "customs": "蒙古袍、挂毯、家居装饰",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "火草织布，采用天然火草纤维与棉线混织",
+                            "customs": "传统服饰、祭祀用品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "苗绣，图案精美，色彩艳丽，以龙、凤、蝴蝶等为主要图案",
+                            "customs": "盛装装饰、银饰搭配",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "织锦，以红、黑、金三色为主，图案多为孔雀、大象等",
+                            "customs": "筒裙、家居装饰",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国是丝绸的发源地，早在新石器时代就开始养蚕缫丝，汉代丝绸之路的开通使丝绸成为东西方贸易的重要商品",
+                    "data_sources": [
+                        "文化和旅游部官网: https://www.mct.gov.cn/",
+                        "中国丝绸博物馆: http://www.chinasilkmuseum.com/"
+                    ]
+                },
+                "陶瓷": {
+                    "central_topic": "陶瓷",
+                    "description": "中华文明的重要物质载体，体现了中华民族的创造力和审美情趣",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "景德镇青花瓷、钧窑、汝窑、官窑、定窑、哥窑等名窑",
+                            "customs": "日常用瓷、艺术收藏、礼仪用品",
+                            "data_source": "https://www.chnmuseum.cn/zl/wx/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "酥油花瓷器、黑陶，造型质朴，色彩鲜明",
+                            "customs": "宗教仪式、生活用品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "慢轮制陶，传统手工拉坯，烧制简单但工艺独特",
+                            "customs": "生活器皿、宗教用品",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "喀什土陶，色彩艳丽，图案富有民族特色",
+                            "customs": "日常用品、装饰品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "枫香染陶，采用植物染料，色彩自然",
+                            "customs": "生活器皿、祭祀用品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国陶瓷有着悠久的历史，早在新石器时代就出现了陶器，商代出现了原始瓷器，东汉时期真正的瓷器诞生",
+                    "data_sources": [
+                        "中国国家博物馆: https://www.chnmuseum.cn/",
+                        "故宫博物院: https://www.dpm.org.cn/"
+                    ]
+                },
+                "中医药": {
+                    "central_topic": "中医药",
+                    "description": "中华民族传统医学体系，融合了哲学思想和临床经验",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "中医理论（阴阳五行、经络学说）、中药方剂、针灸推拿",
+                            "customs": "药膳食疗、养生保健、节气养生",
+                            "data_source": "https://www.nmpa.gov.cn/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "藏医药，《四部医典》为代表，注重平衡与整体观念",
+                            "customs": "温泉疗法、药浴、藏药熏蒸",
+                            "data_source": "https://www.nhc.gov.cn/yzygj/s7659/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "蒙医药，结合游牧民族生活特点，擅长治疗创伤和消化系统疾病",
+                            "customs": "食疗、马奶酒疗法、艾灸",
+                            "data_source": "https://www.nhc.gov.cn/yzygj/s7659/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "苗医药，草药知识丰富，擅长治疗骨伤和蛇虫咬伤",
+                            "customs": "草药浴、熏蒸疗法、推拿按摩",
+                            "data_source": "https://www.nhc.gov.cn/yzygj/s7659/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "彝医药，以植物药为主，擅长治疗感冒、肠胃疾病",
+                            "customs": "草药泡酒、药膳食疗",
+                            "data_source": "https://www.nhc.gov.cn/yzygj/s7659/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "傣医药，以植物药为主，擅长治疗热带疾病和皮肤病",
+                            "customs": "药浴、熏蒸疗法、推拿按摩",
+                            "data_source": "https://www.nhc.gov.cn/yzygj/s7659/"
+                        }
+                    ],
+                    "historical_origins": "中医药起源于原始社会，春秋战国时期形成基本理论体系，《黄帝内经》《伤寒杂病论》《神农本草经》等经典著作奠定了理论基础",
+                    "data_sources": [
+                        "国家卫生健康委员会: https://www.nhc.gov.cn/",
+                        "国家药品监督管理局: https://www.nmpa.gov.cn/"
+                    ]
+                },
+                "乐器": {
+                    "central_topic": "乐器",
+                    "description": "各民族音乐文化的重要载体，体现了不同民族的审美情趣和艺术创造力",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "古琴、古筝、琵琶、笛子、二胡等传统乐器",
+                            "customs": "古典音乐演奏、传统音乐教育、民族乐队",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "马头琴，蒙古族最具代表性的乐器，音色悠扬",
+                            "customs": "长调演唱伴奏、那达慕大会表演",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "热瓦普、都塔尔、手鼓等，富有节奏感",
+                            "customs": "木卡姆表演、节庆歌舞",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "扎木聂、法号、热巴鼓等，宗教色彩浓厚",
+                            "customs": "宗教仪式、民间歌舞",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "芦笙、苗笛、铜鼓等，芦笙是苗族最具代表性的乐器",
+                            "customs": "芦笙舞表演、节庆活动",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "月琴、三弦、马布（一种竹制吹管乐器）",
+                            "customs": "跳月、火把节表演",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "象脚鼓、铓锣、葫芦丝等",
+                            "customs": "孔雀舞伴奏、泼水节表演",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国乐器有着悠久的历史，早在新石器时代就出现了骨笛、陶埙等原始乐器，周代形成了八音分类法（金、石、土、革、丝、木、匏、竹）",
+                    "data_sources": [
+                        "文化和旅游部官网: https://www.mct.gov.cn/",
+                        "中国艺术研究院: https://www.ncfta.gov.cn/"
+                    ]
+                },
+                "建筑": {
+                    "central_topic": "建筑",
+                    "description": "各民族独特的建筑风格，反映了不同的自然环境、生活方式和文化传统",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "四合院、徽派建筑、客家土楼、江南水乡建筑",
+                            "customs": "庭院文化、家族聚居",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "碉房（用石块垒砌，平顶厚墙）、布达拉宫式建筑",
+                            "customs": "宗教建筑、高原适应性设计",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "蒙古包（游牧民族的移动住所，便于拆卸和搭建）",
+                            "customs": "逐水草而居、那达慕大会举办场所",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "阿以旺（庭院式建筑，有凉棚和葡萄架）、高台民居",
+                            "customs": "大家庭聚居、夏季纳凉",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "吊脚楼（依山而建，木质结构，下层架空）",
+                            "customs": "防洪防潮、家族聚居",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "土掌房（用泥土夯筑墙壁，平顶设计）",
+                            "customs": "多层结构、平顶晒粮",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "竹楼（用竹子建造，悬山式屋顶，通风防潮）",
+                            "customs": "防潮防虫、宗教仪式场所",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国传统建筑历史悠久，从原始社会的洞穴居住到夏商周时期的宫殿建筑，再到秦汉以后的多样化发展",
+                    "data_sources": [
+                        "文化和旅游部官网: https://www.mct.gov.cn/",
+                        "中国建筑史学会: http://www.chinaconstructionhistory.org/"
+                    ]
+                },
+                "服饰": {
+                    "central_topic": "服饰",
+                    "description": "各民族独特的服饰文化，体现了不同的审美情趣、生活环境和文化传统",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "汉服（交领右衽、宽袍大袖）、唐装、旗袍",
+                            "customs": "节日庆典、传统礼仪",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "藏袍（宽松的长袍，可根据气温变化调整）、氆氇面料",
+                            "customs": "保暖防寒、方便活动",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "蒙古袍（长袍，两侧开叉，腰间束带）、蒙古靴",
+                            "customs": "适应游牧生活、那达慕大会着装",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "花帽（四楞小花帽）、艾德莱斯绸服饰、巴旦木图案",
+                            "customs": "日常着装、节日庆典",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "银饰、百褶裙、刺绣图案（龙、凤、蝴蝶等）",
+                            "customs": "盛装出席节庆、银饰象征财富",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "披毡、擦尔瓦（羊毛披风）、火把节盛装",
+                            "customs": "防寒保暖、节日庆典",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "筒裙（长筒裙，以织锦或印花布制作）、紧身短上衣",
+                            "customs": "适应热带气候、泼水节着装",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国传统服饰历史悠久，从原始社会的兽皮树叶到商周时期的等级制度服饰，再到秦汉以后的多样化发展",
+                    "data_sources": [
+                        "文化和旅游部官网: https://www.mct.gov.cn/",
+                        "中国服装史学会: http://www.chinafashionhistory.org/"
+                    ]
+                },
+                "饮食": {
+                    "central_topic": "饮食",
+                    "description": "各民族独特的饮食文化，反映了不同的地理环境、生活方式和文化传统",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "八大菜系（鲁、川、粤、苏、闽、浙、湘、徽）、四大发明食品（豆腐、面条、茶叶、酒）",
+                            "customs": "团圆饭、节日饮食（如春节饺子、中秋月饼）",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "糌粑（青稞面）、酥油、牦牛肉、青稞酒",
+                            "customs": "手抓糌粑、好客习俗",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "手把肉、烤全羊、奶豆腐、马奶酒",
+                            "customs": "那达慕大会饮食、待客礼仪",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "烤馕、手抓饭、烤羊肉串、拉条子",
+                            "customs": "家庭聚餐、节庆饮食",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "酸汤鱼、苗家腊肉、糯米粑、油茶",
+                            "customs": "酸辣口味、节庆饮食",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "坨坨肉、酸菜汤、苦荞粑、烤乳猪",
+                            "customs": "火把节饮食、家族聚餐",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "竹筒饭、酸笋鱼、泡鲁达、泼水粑粑",
+                            "customs": "酸辣口味、泼水节饮食",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国饮食文化历史悠久，从原始社会的采集狩猎到夏商周时期的烹饪技术发展，再到秦汉以后的饮食体系形成",
+                    "data_sources": [
+                        "文化和旅游部官网: https://www.mct.gov.cn/",
+                        "中国烹饪协会: http://www.chinacooks.com/"
+                    ]
+                },
+                "工艺": {
+                    "central_topic": "工艺",
+                    "description": "各民族独特的传统工艺，体现了不同的审美情趣和创造力",
+                    "ethnic_groups": [
+                        {
+                            "name": "汉族",
+                            "culture": "四大名绣、剪纸、玉雕、木雕、漆艺",
+                            "customs": "民间艺术、收藏投资",
+                            "data_source": "https://www.mct.gov.cn/whzx/whys/"
+                        },
+                        {
+                            "name": "藏族",
+                            "culture": "唐卡（宗教卷轴画）、酥油花、金属锻造",
+                            "customs": "宗教仪式、文化传承",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "蒙古族",
+                            "culture": "马鞍制作、地毯编织、银器工艺",
+                            "customs": "游牧生活必备、装饰用品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "维吾尔族",
+                            "culture": "地毯编织、花帽制作、铜器工艺",
+                            "customs": "家庭装饰、礼赠佳品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "苗族",
+                            "culture": "银饰锻造、蜡染、织锦",
+                            "customs": "盛装装饰、传家之宝",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "彝族",
+                            "culture": "漆器、银饰、刺绣、竹编",
+                            "customs": "生活用品、装饰用品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        },
+                        {
+                            "name": "傣族",
+                            "culture": "竹编、象脚鼓制作、贝叶经雕刻",
+                            "customs": "生活用品、宗教用品",
+                            "data_source": "https://www.neac.gov.cn/seac/xxgk/"
+                        }
+                    ],
+                    "historical_origins": "中国传统工艺历史悠久，从原始社会的石器制作到夏商周时期的青铜器铸造，再到秦汉以后的多样化发展",
+                    "data_sources": [
+                        "文化和旅游部官网: https://www.mct.gov.cn/",
+                        "中国工艺美术协会: http://www.chinaarts-craft.org/"
+                    ]
+                }
+            },
+            "ethnic_groups_list": [
+                "汉族", "藏族", "蒙古族", "维吾尔族", "苗族", "彝族", "傣族"
+            ]
+        };
+        
+        // 使用mermaid渲染知识图谱
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentMaterial = '茶';
+            let currentEthnicGroup = '全部';
+            
+            // 获取民族对应的CSS类
+            function getEthnicClass(ethnicName) {
+                const classes = {
+                    '汉族': 'han',
+                    '藏族': 'tibetan',
+                    '蒙古族': 'mongolian',
+                    '维吾尔族': 'uygur',
+                    '苗族': 'miao',
+                    '彝族': 'yi',
+                    '傣族': 'dai'
+                };
+                return classes[ethnicName] || 'han';
+            }
+            
+            // 添加图谱交互效果
+            function addGraphInteractions(diagramElement) {
+                // 获取所有节点
+                const nodes = diagramElement.querySelectorAll('g.node');
+                
+                nodes.forEach(node => {
+                    // 添加悬停效果
+                    node.addEventListener('mouseenter', function() {
+                        // 高亮当前节点
+                        this.style.opacity = '1';
+                        this.style.cursor = 'pointer';
+                        
+                        // 添加脉冲效果
+                        this.classList.add('pulse-effect');
+                    });
+                    
+                    node.addEventListener('mouseleave', function() {
+                        // 恢复正常状态
+                        this.style.opacity = '0.9';
+                        
+                        // 移除脉冲效果
+                        this.classList.remove('pulse-effect');
+                    });
+                    
+                    // 添加点击效果
+                    node.addEventListener('click', function() {
+                        // 获取节点文本
+                        const nodeText = this.querySelector('text tspan').textContent;
+                        
+                        // 查找是否是民族节点
+                        const ethnicGroups = Object.values(cultureData.materials).flatMap(m => 
+                            m.ethnic_groups.map(g => g.name)
+                        );
+                        
+                        const matchedEthnic = ethnicGroups.find(ethnic => 
+                            nodeText.includes(ethnic)
+                        );
+                        
+                        if (matchedEthnic) {
+                            // 如果点击的是民族节点，更新筛选
+                            const ethnicButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(2) .btn-secondary');
+                            ethnicButtons.forEach(btn => {
+                                btn.classList.remove('active');
+                                if (btn.textContent === matchedEthnic) {
+                                    btn.classList.add('active');
+                                    currentEthnicGroup = matchedEthnic;
+                                }
+                            });
+                            
+                            // 重新渲染图谱
+                            renderGraph(currentMaterial, currentEthnicGroup);
+                        }
+                    });
+                });
+            }
+            
+            // 图谱缩放控制功能
+            function initZoomControls(diagramElement) {
+                const zoomInBtn = document.getElementById('zoomInBtn');
+                const zoomOutBtn = document.getElementById('zoomOutBtn');
+                const resetZoomBtn = document.getElementById('resetZoomBtn');
+                const zoomLevelDisplay = document.getElementById('zoomLevel');
+                
+                let currentZoom = 100; // 初始缩放级别为100%
+                const zoomStep = 10; // 每次缩放的步长
+                const minZoom = 50; // 最小缩放级别
+                const maxZoom = 200; // 最大缩放级别
+                
+                // 获取SVG元素
+                const svgElement = diagramElement.querySelector('svg');
+                if (!svgElement) return;
+                
+                // 设置SVG的初始样式
+                svgElement.style.transition = 'transform 0.3s ease';
+                svgElement.style.transformOrigin = 'top left';
+                
+                // 更新缩放显示和应用缩放
+                function updateZoom() {
+                    zoomLevelDisplay.textContent = `${currentZoom}%`;
+                    svgElement.style.transform = `scale(${currentZoom / 100})`;
+                    
+                    // 更新按钮状态
+                    zoomInBtn.disabled = currentZoom >= maxZoom;
+                    zoomOutBtn.disabled = currentZoom <= minZoom;
+                    
+                    if (currentZoom >= maxZoom) {
+                        zoomInBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        zoomInBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                    
+                    if (currentZoom <= minZoom) {
+                        zoomOutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        zoomOutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+                
+                // 放大功能
+                zoomInBtn.addEventListener('click', function() {
+                    if (currentZoom < maxZoom) {
+                        currentZoom += zoomStep;
+                        updateZoom();
+                    }
+                });
+                
+                // 缩小功能
+                zoomOutBtn.addEventListener('click', function() {
+                    if (currentZoom > minZoom) {
+                        currentZoom -= zoomStep;
+                        updateZoom();
+                    }
+                });
+                
+                // 重置缩放
+                resetZoomBtn.addEventListener('click', function() {
+                    currentZoom = 100;
+                    updateZoom();
+                });
+                
+                // 初始化缩放显示
+                updateZoom();
+                
+                // 添加鼠标滚轮缩放支持
+                diagramElement.addEventListener('wheel', function(e) {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        
+                        if (e.deltaY < 0 && currentZoom < maxZoom) {
+                            currentZoom += zoomStep;
+                        } else if (e.deltaY > 0 && currentZoom > minZoom) {
+                            currentZoom -= zoomStep;
+                        }
+                        
+                        updateZoom();
+                    }
+                });
+            }
+            
+            // 渲染知识图谱函数
+            function renderGraph(material, ethnicGroup = '全部') {
+                const materialData = cultureData.materials[material];
+                if (!materialData) return;
+                
+                // 更新图谱标题
+                document.querySelector('.map-container h2').textContent = `中华民族${material}文化知识图谱`;
+                
+                // 配置mermaid主题和样式
+                mermaid.initialize({
+                    theme: 'default',
+                    themeVariables: {
+                        primaryColor: '#e2e8f0',
+                        primaryTextColor: '#1f2937',
+                        primaryBorderColor: '#cbd5e1',
+                        lineColor: '#64748b',
+                        secondaryColor: '#f1f5f9',
+                        tertiaryColor: '#f8fafc',
+                        noteBkgColor: '#dbeafe',
+                        noteTextColor: '#1e40af',
+                        noteBorderColor: '#bfdbfe',
+                        fontFamily: '"Noto Sans SC", "Microsoft YaHei", sans-serif'
+                    },
+                    flowchart: {
+                        curve: 'monotoneX',
+                        padding: 10,
+                        nodeSpacing: 20
+                    },
+                    gantt: {
+                        barHeight: 20,
+                        barGap: 4,
+                        topPadding: 50,
+                        leftPadding: 75,
+                        rightPadding: 25,
+                        sectionPadding: 10
+                    }
+                });
+                
+                // 构建mermaid图表定义
+                let graphDefinition = `
+                    graph TD
+                        subgraph 中心主题
+                            A["${material}<br>${materialData.description}"]
+                        end
+                        
+                        subgraph 民族${material}文化
+                `;
+                
+                // 添加民族节点
+                const ethnicNodes = [];
+                materialData.ethnic_groups.forEach((group, index) => {
+                    if (ethnicGroup === '全部' || group.name === ethnicGroup) {
+                        const nodeId = String.fromCharCode(66 + index); // B, C, D, E...
+                        ethnicNodes.push({ id: nodeId, name: group.name });
+                        graphDefinition += `                            ${nodeId}["${group.name}<br>${group.culture.substring(0, 15)}..."]:::${getEthnicClass(group.name)}
+`;
+                    }
+                });
+                
+                graphDefinition += `                        end
+                        
+                        subgraph 文化内涵
+                            F["历史渊源<br>${materialData.historical_origins.substring(0, 15)}..."]:::history
+                            G["社交礼仪<br>传统习俗与仪式"]:::etiquette
+                            H["生活方式<br>日常应用与实践"]:::lifestyle
+                            I["文化融合<br>促进民族交流"]:::fusion
+                        end
+                        
+                        A -->|"源于"| F
+                        A -->|"促进"| I
+                `;
+                
+                // 添加民族与中心主题的连接
+                ethnicNodes.forEach(node => {
+                    graphDefinition += `                        A -->|"在${node.name}中的应用"| ${node.id}
+`;
+                });
+                
+                // 添加民族与文化内涵的连接
+                ethnicNodes.forEach(node => {
+                    graphDefinition += `                        ${node.id} -->|"体现"| G
+                        ${node.id} -->|"融入"| H
+`;
+                });
+                
+                // 添加样式定义
+                graphDefinition += `
+                        
+                        classDef center fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e40af,font-weight:bold;
+                        classDef han fill:#fee2e2,stroke:#dc2626,stroke-width:1px,color:#991b1b;
+                        classDef tibetan fill:#ffedd5,stroke:#ea580c,stroke-width:1px,color:#c2410c;
+                        classDef mongolian fill:#dbeafe,stroke:#2563eb,stroke-width:1px,color:#1e40af;
+                        classDef uygur fill:#d1fae5,stroke:#059669,stroke-width:1px,color:#065f46;
+                        classDef miao fill:#ede9fe,stroke:#7c3aed,stroke-width:1px,color:#5b21b6;
+                        classDef yi fill:#fef3c7,stroke:#d97706,stroke-width:1px,color:#92400e;
+                        classDef dai fill:#cffafe,stroke:#0891b2,stroke-width:1px,color:#0e7490;
+                        classDef history fill:#fef3c7,stroke:#d97706,stroke-width:1px,color:#92400e;
+                        classDef etiquette fill:#d1fae5,stroke:#059669,stroke-width:1px,color:#065f46;
+                        classDef lifestyle fill:#dbeafe,stroke:#2563eb,stroke-width:1px,color:#1e40af;
+                        classDef fusion fill:#ede9fe,stroke:#7c3aed,stroke-width:1px,color:#5b21b6;
+                        
+                        class A center;
+                `;
+                
+                // 添加民族类
+                ethnicNodes.forEach(node => {
+                    graphDefinition += `                        class ${node.id} ${getEthnicClass(node.name)};
+`;
+                });
+                
+                graphDefinition += `            `;
+                
+                // 渲染mermaid图表
+                mermaid.render('graphDiv', graphDefinition)
+                    .then(result => {
+                        const mermaidDiagram = document.getElementById('mermaid-diagram');
+                        mermaidDiagram.innerHTML = result.svg;
+                        
+                        // 添加交互效果
+                        addGraphInteractions(mermaidDiagram);
+                        
+                        // 初始化缩放控制
+                        initZoomControls(mermaidDiagram);
+                    })
+                    .catch(error => {
+                        console.error('Error rendering mermaid diagram:', error);
+                        document.getElementById('mermaid-diagram').innerHTML = '<p class="text-center text-gray-500">知识图谱加载失败</p>';
+                    });
+                
+                // 更新文化知识详情卡片
+                updateDetailCards(material, ethnicGroup);
+            }
+            
+            // 更新详情卡片函数
+            function updateDetailCards(material, ethnicGroup = '全部') {
+                const materialData = cultureData.materials[material];
+                if (!materialData) return;
+                
+                const cardsContainer = document.getElementById('detailCardsContainer');
+                cardsContainer.innerHTML = '';
+                
+                // 筛选民族数据
+                let filteredGroups = materialData.ethnic_groups;
+                if (ethnicGroup !== '全部') {
+                    filteredGroups = materialData.ethnic_groups.filter(group => group.name === ethnicGroup);
+                }
+                
+                // 创建卡片
+                filteredGroups.forEach(group => {
+                    const card = document.createElement('div');
+                    card.className = 'card p-5';
+                    card.innerHTML = `
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                                <i class="fas ${getEthnicIcon(group.name)}"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold">${group.name}${material}文化</h3>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">${group.culture}</p>
+                        <p class="text-sm text-gray-600 mb-4">${group.customs}</p>
+                        <a href="${group.data_source}" class="text-xs text-blue-600 hover:underline flex items-center">
+                            <i class="fas fa-external-link-alt mr-1"></i> 查看来源
+                        </a>
+                    `;
+                    cardsContainer.appendChild(card);
+                });
+                
+                // 更新历史渊源区
+                const historySection = document.querySelector('.card p.text-gray-700');
+                historySection.textContent = `${materialData.historical_origins}。${material}不仅是日常生活的重要组成部分，更是连接各民族文化的重要纽带，促进了各民族之间的经济交流和文化融合。`;
+            }
+            
+            // 获取民族对应的图标
+            function getEthnicIcon(ethnicName) {
+                const icons = {
+                    '汉族': 'fa-leaf',
+                    '藏族': 'fa-mountain',
+                    '蒙古族': 'fa-horse',
+                    '维吾尔族': 'fa-utensils',
+                    '苗族': 'fa-drum',
+                    '彝族': 'fa-fire',
+                    '傣族': 'fa-water'
+                };
+                return icons[ethnicName] || 'fa-users';
+            }
+            
+            // 更新筛选状态显示
+            function updateFilterStatus() {
+                document.getElementById('currentMaterialStatus').textContent = currentMaterial;
+                document.getElementById('currentEthnicStatus').textContent = currentEthnicGroup;
+            }
+            
+            // 物质类型选择按钮交互
+            const materialButtons = document.querySelectorAll('[data-material]');
+            materialButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除同组按钮的active类
+                    materialButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.style.transform = 'scale(1)';
+                    });
+                    
+                    // 为当前点击的按钮添加active类和动画效果
+                    this.classList.add('active');
+                    this.style.transform = 'scale(1.05)';
+                    
+                    // 更新当前物质
+                    currentMaterial = this.getAttribute('data-material');
+                    
+                    // 更新筛选状态显示
+                    updateFilterStatus();
+                    
+                    // 重新渲染图谱
+                    renderGraph(currentMaterial, currentEthnicGroup);
+                });
+            });
+            
+            // 民族信息提示数据
+            const ethnicGroupInfo = {
+                '全部': '查看所有民族的文化信息',
+                '汉族': '汉族是中国的主体民族，拥有悠久的历史和丰富的文化传统。汉族的茶文化、丝绸文化、陶瓷文化等在世界上享有盛誉。',
+                '藏族': '藏族主要分布在青藏高原，有着独特的藏传佛教文化和传统艺术。酥油茶是藏族人民日常生活中不可或缺的饮品。',
+                '蒙古族': '蒙古族是游牧民族，以草原文化为特色。那达慕大会是蒙古族的传统节日，马头琴是其代表性乐器。',
+                '维吾尔族': '维吾尔族主要分布在新疆地区，能歌善舞，创造了著名的木卡姆艺术。维吾尔族的茶文化和丝绸工艺有着独特魅力。',
+                '苗族': '苗族主要分布在贵州、湖南等地，有着绚丽多彩的民族服饰和丰富的民间艺术。苗绣和芦笙是其文化代表。',
+                '彝族': '彝族主要分布在云南、四川等地，有着悠久的历史和独特的历法。火把节是彝族最盛大的传统节日。',
+                '傣族': '傣族主要分布在云南，以热带风情和泼水节闻名。贝叶经是傣族传统文化的重要载体。'
+            };
+            
+            // 民族筛选按钮交互（增强版）
+            const ethnicButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(2) .btn-secondary');
+            ethnicButtons.forEach(button => {
+                // 添加悬停提示功能
+                button.addEventListener('mouseenter', function() {
+                    const ethnicName = this.textContent.replace(/^[^\p{L}]+/, '').trim(); // 移除图标部分
+                    if (ethnicGroupInfo[ethnicName]) {
+                        // 创建提示元素
+                        if (!document.querySelector('.ethnic-tooltip')) {
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'ethnic-tooltip bg-gray-800 text-white p-3 rounded-md text-sm max-w-xs z-50 shadow-lg absolute pointer-events-none';
+                            tooltip.style.opacity = '0';
+                            tooltip.style.transition = 'opacity 0.2s';
+                            document.body.appendChild(tooltip);
+                        }
+                        
+                        const tooltip = document.querySelector('.ethnic-tooltip');
+                        tooltip.innerHTML = `<strong>${ethnicName}</strong><br>${ethnicGroupInfo[ethnicName]}`;
+                        
+                        // 定位提示框
+                        const rect = this.getBoundingClientRect();
+                        tooltip.style.left = `${rect.left + window.scrollX}px`;
+                        tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+                        
+                        // 显示提示框
+                        setTimeout(() => {
+                            tooltip.style.opacity = '1';
+                        }, 100);
+                    }
+                });
+                
+                // 隐藏提示框
+                button.addEventListener('mouseleave', function() {
+                    const tooltip = document.querySelector('.ethnic-tooltip');
+                    if (tooltip) {
+                        tooltip.style.opacity = '0';
+                        setTimeout(() => {
+                            if (tooltip && tooltip.style.opacity === '0') {
+                                tooltip.remove();
+                            }
+                        }, 300);
+                    }
+                });
+                
+                // 点击事件处理
+                button.addEventListener('click', function() {
+                    // 移除同组按钮的active类
+                    ethnicButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.style.transform = 'scale(1)';
+                    });
+                    
+                    // 为当前点击的按钮添加active类和动画效果
+                    this.classList.add('active');
+                    this.style.transform = 'scale(1.05)';
+                    
+                    // 更新当前民族
+                    currentEthnicGroup = this.textContent.replace(/^[^\p{L}]+/, '').trim(); // 移除图标部分
+                    
+                    // 更新筛选状态显示
+                    updateFilterStatus();
+                    
+                    // 重新渲染图谱
+                    renderGraph(currentMaterial, currentEthnicGroup);
+                    
+                    // 隐藏提示框
+                    const tooltip = document.querySelector('.ethnic-tooltip');
+                    if (tooltip) {
+                        tooltip.remove();
+                    }
+                });
+            });
+            
+            // 重置筛选按钮
+            const resetFiltersBtn = document.getElementById('resetFilters');
+            resetFiltersBtn.addEventListener('click', function() {
+                // 重置物质类型选择
+                const materialButtons = document.querySelectorAll('[data-material]');
+                materialButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.transform = 'scale(1)';
+                    if (btn.getAttribute('data-material') === '茶') {
+                        btn.classList.add('active');
+                        currentMaterial = '茶';
+                    }
+                });
+                
+                // 重置民族筛选
+                const ethnicButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(2) .btn-secondary');
+                ethnicButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.transform = 'scale(1)';
+                    if (btn.textContent.includes('全部')) {
+                        btn.classList.add('active');
+                        currentEthnicGroup = '全部';
+                    }
+                });
+                
+                // 清空搜索
+                document.getElementById('searchInput').value = '';
+                document.getElementById('keyword').value = '';
+                clearSearchHighlights();
+                document.getElementById('searchResultsStats').classList.add('hidden');
+                
+                // 更新筛选状态显示
+                updateFilterStatus();
+                
+                // 重新渲染图谱
+                renderGraph(currentMaterial, currentEthnicGroup);
+            });
+            
+            // 搜索按钮交互
+            const searchBtn = document.getElementById('search-btn');
+            const keywordInput = document.getElementById('keyword');
+            
+            searchBtn.addEventListener('click', function() {
+                const keyword = keywordInput.value.trim();
+                if (keyword) {
+                    console.log('搜索关键词:', keyword);
+                    
+                    // 检查关键词是否匹配物质类型
+                    const matchedMaterial = Object.keys(cultureData.materials).find(material => 
+                        material.includes(keyword)
+                    );
+                    
+                    // 检查关键词是否匹配民族
+                    const matchedEthnic = cultureData.ethnic_groups_list.find(ethnic => 
+                        ethnic.includes(keyword)
+                    );
+                    
+                    // 根据匹配结果更新视图
+                    if (matchedMaterial) {
+                        // 更新物质选择
+                        const materialButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(1) .btn-secondary');
+                        materialButtons.forEach(btn => {
+                            btn.classList.remove('active');
+                            btn.style.transform = 'scale(1)';
+                        });
+                        const targetMaterialBtn = document.querySelector(`[data-material="${matchedMaterial}"]`);
+                        if (targetMaterialBtn) {
+                            targetMaterialBtn.classList.add('active');
+                            targetMaterialBtn.style.transform = 'scale(1.05)';
+                            currentMaterial = matchedMaterial;
+                        }
+                    }
+                    
+                    if (matchedEthnic) {
+                        // 更新民族选择
+                        const ethnicButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(2) .btn-secondary');
+                        ethnicButtons.forEach(btn => {
+                            btn.classList.remove('active');
+                            btn.style.transform = 'scale(1)';
+                        });
+                        // 查找包含民族名称的按钮
+                        ethnicButtons.forEach(btn => {
+                            if (btn.textContent.includes(matchedEthnic)) {
+                                btn.classList.add('active');
+                                btn.style.transform = 'scale(1.05)';
+                                currentEthnicGroup = matchedEthnic;
+                            }
+                        });
+                    }
+                    
+                    // 重新渲染图谱
+                    renderGraph(currentMaterial, currentEthnicGroup);
+                    
+                    // 更新筛选状态显示
+                    updateFilterStatus();
+                }
+            });
+            
+            // 回车键触发搜索
+            keywordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+            
+            // 原生JavaScript实现:contains功能
+            function findElementsContainingText(selector, text) {
+                const elements = document.querySelectorAll(selector);
+                const results = [];
+                elements.forEach(el => {
+                    if (el.textContent.toUpperCase().includes(text.toUpperCase())) {
+                        results.push(el);
+                    }
+                });
+                return results;
+            }
+            
+            // 搜索功能
+            const searchInput = document.getElementById('searchInput');
+            const searchSuggestions = document.getElementById('searchSuggestions');
+            const searchResultsStats = document.getElementById('searchResultsStats');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            // 构建搜索索引
+            function buildSearchIndex() {
+                const index = {
+                    materials: [],
+                    ethnicGroups: [],
+                    culturalAspects: [],
+                    all: [],
+                    // 新增：详细文化内容索引
+                    detailedContents: []
+                };
+                
+                // 索引物质类型（增强版）
+                Object.keys(cultureData.materials).forEach(materialName => {
+                    const material = cultureData.materials[materialName];
+                    const fullText = `${materialName} ${material.description} ${material.historical_origins} ${material.ethnic_groups.map(g => `${g.name} ${g.culture} ${g.customs}`).join(' ')}`;
+                    
+                    index.materials.push({
+                        type: 'material',
+                        name: materialName,
+                        description: material.description,
+                        historicalOrigins: material.historical_origins,
+                        fullText: fullText
+                    });
+                    index.all.push({
+                        type: 'material',
+                        name: materialName,
+                        label: `${materialName}（物质类型）`,
+                        fullText: fullText
+                    });
+                });
+                
+                // 索引民族（增强版，包含所有物质中的民族信息）
+                const ethnicGroupsMap = new Map();
+                Object.keys(cultureData.materials).forEach(materialName => {
+                    const material = cultureData.materials[materialName];
+                    material.ethnic_groups.forEach(group => {
+                        if (!ethnicGroupsMap.has(group.name)) {
+                            ethnicGroupsMap.set(group.name, {
+                                name: group.name,
+                                cultures: [],
+                                customs: [],
+                                materials: []
+                            });
+                        }
+                        
+                        const ethnicData = ethnicGroupsMap.get(group.name);
+                        ethnicData.cultures.push(group.culture);
+                        ethnicData.customs.push(group.customs);
+                        ethnicData.materials.push(materialName);
+                    });
+                });
+                
+                // 将Map转换为索引条目
+                ethnicGroupsMap.forEach((data, name) => {
+                    const fullText = `${name} ${data.cultures.join(' ')} ${data.customs.join(' ')} ${data.materials.join(' ')}`;
+                    index.ethnicGroups.push({
+                        type: 'ethnic',
+                        name: name,
+                        cultures: data.cultures,
+                        customs: data.customs,
+                        materials: data.materials,
+                        fullText: fullText
+                    });
+                    index.all.push({
+                        type: 'ethnic',
+                        name: name,
+                        label: `${name}（民族）`,
+                        fullText: fullText
+                    });
+                });
+                
+                // 索引文化内涵（扩展版）
+                const culturalAspects = [
+                    { name: '历史渊源', type: 'aspect', keywords: ['历史', '起源', '发展', '传承'] },
+                    { name: '社交礼仪', type: 'aspect', keywords: ['礼仪', '社交', '习俗', '传统'] },
+                    { name: '生活方式', type: 'aspect', keywords: ['生活', '日常', '习惯', '饮食'] },
+                    { name: '文化融合', type: 'aspect', keywords: ['融合', '交流', '传播', '影响'] },
+                    { name: '艺术表现', type: 'aspect', keywords: ['艺术', '工艺', '表现', '创造'] },
+                    { name: '宗教信仰', type: 'aspect', keywords: ['宗教', '信仰', '仪式', '精神'] },
+                    { name: '节庆活动', type: 'aspect', keywords: ['节庆', '节日', '活动', '庆典'] }
+                ];
+                
+                culturalAspects.forEach(aspect => {
+                    index.culturalAspects.push(aspect);
+                    index.all.push({
+                        type: 'aspect',
+                        name: aspect.name,
+                        label: `${aspect.name}（文化内涵）`,
+                        fullText: `${aspect.name} ${aspect.keywords.join(' ')}`
+                    });
+                });
+                
+                // 新增：详细文化内容索引
+                Object.keys(cultureData.materials).forEach(materialName => {
+                    const material = cultureData.materials[materialName];
+                    
+                    // 索引物质的历史渊源
+                    index.detailedContents.push({
+                        type: 'content',
+                        category: 'historical',
+                        title: `${materialName}的历史渊源`,
+                        content: material.historical_origins,
+                        fullText: `${materialName} 历史 渊源 ${material.historical_origins}`
+                    });
+                    
+                    // 索引每个民族的详细文化信息
+                    material.ethnic_groups.forEach(group => {
+                        index.detailedContents.push({
+                            type: 'content',
+                            category: 'culture',
+                            title: `${group.name}的${materialName}文化`,
+                            content: group.culture,
+                            fullText: `${group.name} ${materialName} 文化 ${group.culture}`
+                        });
+                        
+                        index.detailedContents.push({
+                            type: 'content',
+                            category: 'custom',
+                            title: `${group.name}的${materialName}习俗`,
+                            content: group.customs,
+                            fullText: `${group.name} ${materialName} 习俗 ${group.customs}`
+                        });
+                    });
+                });
+                
+                // 将详细内容添加到全局索引
+                index.detailedContents.forEach(content => {
+                    index.all.push({
+                        type: 'detailed_content',
+                        name: content.title,
+                        label: content.title,
+                        fullText: content.fullText
+                    });
+                });
+                
+                return index;
+            }
+            
+            // 创建搜索索引
+            const searchIndex = buildSearchIndex();
+            
+            // 模拟AI数据库增强搜索建议
+            function getAISearchSuggestions(searchTerm) {
+                const aiEnhancedSuggestions = [
+                    { keyword: '茶', suggestions: ['茶文化', '茶道', '茶叶制作', '茶马古道', '茶艺表演'] },
+                    { keyword: '丝绸', suggestions: ['丝绸之路', '丝绸文化', '丝绸工艺', '丝绸服饰', '桑蚕养殖'] },
+                    { keyword: '陶瓷', suggestions: ['陶瓷工艺', '瓷器', '陶艺', '景德镇', '陶瓷文化'] },
+                    { keyword: '中医药', suggestions: ['中医理论', '中药', '针灸', '推拿', '养生保健'] },
+                    { keyword: '乐器', suggestions: ['民族音乐', '传统乐器', '音乐文化', '演奏艺术', '音乐传承'] },
+                    { keyword: '汉族', suggestions: ['汉族文化', '儒家思想', '汉字', '汉服', '汉族传统节日'] },
+                    { keyword: '藏族', suggestions: ['藏族文化', '藏传佛教', '酥油茶', '唐卡', '藏历年'] },
+                    { keyword: '蒙古族', suggestions: ['蒙古文化', '那达慕', '马头琴', '蒙古袍', '草原文化'] },
+                    { keyword: '维吾尔族', suggestions: ['维吾尔文化', '木卡姆', '艾德莱斯绸', '维吾尔舞蹈', '清真饮食'] },
+                    { keyword: '苗族', suggestions: ['苗族文化', '苗绣', '芦笙', '苗族银饰', '苗年'] },
+                    { keyword: '彝族', suggestions: ['彝族文化', '火把节', '彝族服饰', '毕摩文化', '彝族音乐'] },
+                    { keyword: '傣族', suggestions: ['傣族文化', '泼水节', '贝叶经', '傣族舞蹈', '干栏式建筑'] }
+                ];
+                
+                // 查找匹配的关键词建议
+                for (const item of aiEnhancedSuggestions) {
+                    if (item.keyword.includes(searchTerm) || searchTerm.includes(item.keyword)) {
+                        return item.suggestions;
+                    }
+                }
+                
+                // 返回通用建议
+                return ['民族文化', '物质文化遗产', '非物质文化遗产', '文化传承', '文化交流'];
+            }
+            
+            // 搜索建议功能（增强版）
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                
+                // 清空之前的建议
+                searchSuggestions.innerHTML = '';
+                searchSuggestions.classList.add('hidden');
+                
+                if (!searchTerm) {
+                    clearSearchHighlights();
+                    searchResultsStats.classList.add('hidden');
+                    return;
+                }
+                
+                // 1. 查找精确匹配项
+                const exactMatches = searchIndex.all.filter(item => 
+                    item.fullText.toLowerCase().includes(searchTerm)
+                ).slice(0, 6); // 最多显示6个精确匹配
+                
+                // 2. 获取AI增强建议
+                const aiSuggestions = getAISearchSuggestions(searchTerm).slice(0, 4); // 最多显示4个AI建议
+                
+                // 显示搜索建议
+                if (exactMatches.length > 0 || aiSuggestions.length > 0) {
+                    searchSuggestions.classList.remove('hidden');
+                    
+                    // 显示精确匹配
+                    if (exactMatches.length > 0) {
+                        exactMatches.forEach(match => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200';
+                            suggestionItem.innerHTML = highlightSearchTerm(match.label, searchTerm);
+                            
+                            // 添加点击事件
+                            suggestionItem.addEventListener('click', function() {
+                                searchInput.value = match.name;
+                                performSearch(match.name);
+                                searchSuggestions.classList.add('hidden');
+                            });
+                            
+                            searchSuggestions.appendChild(suggestionItem);
+                        });
+                    }
+                    
+                    // 添加AI建议分隔线
+                    if (aiSuggestions.length > 0) {
+                        const separator = document.createElement('div');
+                        separator.className = 'px-4 py-1 text-xs text-gray-500 border-t border-gray-200';
+                        separator.textContent = '💡 AI智能推荐';
+                        searchSuggestions.appendChild(separator);
+                        
+                        // 显示AI建议
+                        aiSuggestions.forEach(suggestion => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.className = 'px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors duration-200 text-blue-700';
+                            suggestionItem.textContent = suggestion;
+                            
+                            // 添加点击事件
+                            suggestionItem.addEventListener('click', function() {
+                                searchInput.value = suggestion;
+                                performSearch(suggestion);
+                                searchSuggestions.classList.add('hidden');
+                            });
+                            
+                            searchSuggestions.appendChild(suggestionItem);
+                        });
+                    }
+                }
+            });
+            
+            // 点击外部关闭搜索建议
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                    searchSuggestions.classList.add('hidden');
+                }
+            });
+            
+            // 执行搜索功能
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch(e.target.value);
+                    searchSuggestions.classList.add('hidden');
+                }
+            });
+            
+            // 同义词词典
+            const synonyms = {
+                '茶': ['茶叶', '茗', '茶道', '茶艺', '茶文化', '茶饮'],
+                '丝绸': ['丝织品', '绸缎', '绫罗', '帛', '丝路'],
+                '陶瓷': ['瓷器', '陶器', '陶土', '瓷土', '陶艺'],
+                '中医药': ['中医', '中药', '传统医学', '医术', '药学'],
+                '乐器': ['音乐', '器乐', '演奏', '音律', '乐章'],
+                '汉族': ['汉人', '华夏', '中华', '中原', '炎黄'],
+                '藏族': ['藏人', '卫藏', '康巴', '安多'],
+                '蒙古族': ['蒙古人', '草原民族'],
+                '维吾尔族': ['维族', '维吾尔', '畏兀儿'],
+                '苗族': ['苗人', '苗民'],
+                '彝族': ['彝人', '夷族'],
+                '傣族': ['傣人', '泰族']
+            };
+            
+            // 获取搜索词的同义词
+            function getSynonyms(word) {
+                for (const [key, values] of Object.entries(synonyms)) {
+                    if (key.toLowerCase() === word.toLowerCase()) {
+                        return [...values, key];
+                    }
+                    if (values.some(v => v.toLowerCase() === word.toLowerCase())) {
+                        return [...values, key];
+                    }
+                }
+                return [word];
+            }
+            
+            // 搜索函数（增强版）
+            function performSearch(searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                
+                // 清空之前的高亮
+                clearSearchHighlights();
+                
+                if (!term) {
+                    searchResultsStats.classList.add('hidden');
+                    return;
+                }
+                
+                // 获取同义词
+                const searchTerms = getSynonyms(term);
+                const searchTermRegex = new RegExp(`(${searchTerms.map(escapeRegExp).join('|')})`, 'gi');
+                
+                let foundResults = 0;
+                
+                // 搜索所有文本内容
+                const allTextElements = document.querySelectorAll('.card, .map-container, .sidebar, p, h2, h3, h4, span, div');
+                
+                allTextElements.forEach(el => {
+                    const text = el.textContent.toLowerCase();
+                    const hasMatch = searchTerms.some(t => text.includes(t));
+                    
+                    if (hasMatch && el.offsetParent) {
+                        foundResults++;
+                        
+                        // 添加高亮（包含同义词）
+                        if (el.tagName === 'P' || el.tagName === 'H2' || el.tagName === 'H3' || el.tagName === 'H4' || el.tagName === 'SPAN' || el.tagName === 'DIV') {
+                            const originalText = el.innerHTML;
+                            el.innerHTML = originalText.replace(searchTermRegex, '<span class="search-highlight">$1</span>');
+                        }
+                        
+                        // 高亮整个卡片或相关区域
+                        const card = el.closest('.card');
+                        if (card) {
+                            card.classList.add('bg-yellow-100', 'transition-all', 'duration-300', 'shadow-md');
+                            
+                            // 添加匹配标记
+                            if (!card.querySelector('.match-indicator')) {
+                                const indicator = document.createElement('div');
+                                indicator.className = 'match-indicator absolute top-2 right-2 text-xl';
+                                indicator.innerHTML = '🔍';
+                                card.appendChild(indicator);
+                            }
+                        }
+                        
+                        // 滚动到找到的第一个结果
+                        if (foundResults === 1) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+                
+                // 显示搜索结果统计
+                resultsCount.textContent = foundResults;
+                searchResultsStats.classList.remove('hidden');
+                
+                // 如果使用了同义词，显示扩展信息
+                if (searchTerms.length > 1) {
+                    searchResultsStats.title = `搜索包含同义词: ${searchTerms.join(', ')}`;
+                }
+                
+                // 如果搜索的是物质类型，自动切换到该物质
+                const materialMatch = searchTerms.find(t => cultureData.materials[t]);
+                if (materialMatch) {
+                    const materialButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(1) .btn-secondary');
+                    materialButtons.forEach(btn => {
+                        if (btn.textContent.toLowerCase() === materialMatch) {
+                            btn.click();
+                        }
+                    });
+                }
+                // 如果搜索的是民族，自动筛选该民族
+                else {
+                    const ethnicButtons = document.querySelectorAll('.sidebar .flex.flex-wrap.gap-2:nth-of-type(2) .btn-secondary');
+                    ethnicButtons.forEach(btn => {
+                        const btnText = btn.textContent.toLowerCase();
+                        if (searchTerms.some(t => btnText === t)) {
+                            btn.click();
+                        }
+                    });
+                }
+                
+                // 搜索详细内容索引
+                const detailedMatches = searchIndex.detailedContents.filter(item => 
+                    searchTerms.some(t => item.content.toLowerCase().includes(t))
+                );
+                
+                if (detailedMatches.length > 0) {
+                    console.log(`找到 ${detailedMatches.length} 个详细内容匹配`);
+                    // 可以在这里添加更多详细内容匹配的处理逻辑
+                }
+            }
+            
+            // 清除搜索高亮
+            function clearSearchHighlights() {
+                document.querySelectorAll('.bg-yellow-100, .search-highlight').forEach(el => {
+                    el.classList.remove('bg-yellow-100', 'shadow-md');
+                    if (el.innerHTML.includes('<span class="search-highlight">')) {
+                        el.innerHTML = el.innerHTML.replace(/<span class="search-highlight">(.*?)<\/span>/g, '$1');
+                    }
+                });
+            }
+            
+            // 高亮搜索词
+            function highlightSearchTerm(text, term) {
+                if (!term) return text;
+                const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
+                return text.replace(regex, '<span class="search-highlight">$1</span>');
+            }
+            
+            // 转义正则表达式特殊字符
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+            
+            // 印象卡片生成器功能
+            const ethnicCardSelect = document.getElementById('ethnicCardSelect');
+            const generateCardBtn = document.getElementById('generateCardBtn');
+            const generatedCard = document.getElementById('generatedCard');
+            const cardTitle = document.getElementById('cardTitle');
+            const cardContent = document.getElementById('cardContent');
+            const saveCardBtn = document.getElementById('saveCardBtn');
+            const regenerateCardBtn = document.getElementById('regenerateCardBtn');
+            
+            let selectedEthnicForCard = null;
+            
+            // 选择民族按钮点击事件
+            ethnicCardSelect.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON') {
+                    // 移除其他按钮的active类
+                    ethnicCardSelect.querySelectorAll('button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // 为当前点击的按钮添加active类
+                    e.target.classList.add('active');
+                    
+                    // 更新选中的民族
+                    selectedEthnicForCard = e.target.textContent;
+                }
+            });
+            
+            // 生成印象卡片
+            function generateEthnicCard(ethnicGroup) {
+                // 模拟AI生成的印象卡片内容
+                const cardTemplates = {
+                    '汉族': {
+                        title: '汉族文化印象',
+                        content: [
+                            '🎋 儒家思想：仁、义、礼、智、信的道德规范',
+                            '📚 汉字：承载着五千年文明的智慧结晶',
+                            '🍵 茶文化：修身养性、以茶会友的生活艺术',
+                            '🏮 传统节日：春节、中秋节、端午节等文化传承',
+                            '🎭 传统艺术：京剧、书法、国画、剪纸等'
+                        ]
+                    },
+                    '藏族': {
+                        title: '藏族文化印象',
+                        content: [
+                            '🏔️ 高原文化：适应严酷环境的生存智慧',
+                            '🙏 藏传佛教：影响深远的宗教信仰体系',
+                            '🍵 酥油茶：高原必备的能量饮品',
+                            '📜 唐卡艺术：精美绝伦的宗教绘画',
+                            '🎵 锅庄舞：热情奔放的集体舞蹈'
+                        ]
+                    },
+                    '蒙古族': {
+                        title: '蒙古族文化印象',
+                        content: [
+                            '🐎 草原文化：逐水草而居的游牧生活',
+                            '🎪 那达慕大会：传统体育盛会',
+                            '🎶 马头琴：悠扬深沉的草原之音',
+                            '🏕️ 蒙古包：便于迁徙的传统民居',
+                            '🥛 马奶酒：草原民族的特色饮品'
+                        ]
+                    },
+                    '维吾尔族': {
+                        title: '维吾尔族文化印象',
+                        content: [
+                            '🕌 伊斯兰文化：深刻影响的宗教传统',
+                            '🎵 木卡姆：充满西域风情的音乐史诗',
+                            '🧵 艾德莱斯绸：色彩艳丽的传统织物',
+                            '🍇 新疆瓜果：得天独厚的地理馈赠',
+                            '💃 维吾尔舞蹈：热情奔放的艺术表达'
+                        ]
+                    },
+                    '苗族': {
+                        title: '苗族文化印象',
+                        content: [
+                            '🧵 苗绣：精美绝伦的传统刺绣艺术',
+                            '🎶 芦笙：苗族人民的精神象征',
+                            '💍 银饰：华丽繁复的民族装饰',
+                            '🔥 苗年：隆重热烈的传统节日',
+                            '🏘️ 吊脚楼：适应山区环境的传统建筑'
+                        ]
+                    },
+                    '彝族': {
+                        title: '彝族文化印象',
+                        content: [
+                            '🔥 火把节：激情燃烧的民族盛典',
+                            '🎨 彝族服饰：色彩鲜艳的民族标识',
+                            '📜 毕摩文化：古老神秘的宗教传统',
+                            '🎵 彝族音乐：独特的音阶和表演形式',
+                            '🌽 农耕文化：与自然和谐共处的智慧'
+                        ]
+                    },
+                    '傣族': {
+                        title: '傣族文化印象',
+                        content: [
+                            '💧 泼水节：欢乐祥和的新年庆典',
+                            '📜 贝叶经：记载着古老智慧的文化典籍',
+                            '🏯 干栏式建筑：适应湿热气候的传统民居',
+                            '💃 孔雀舞：优雅灵动的艺术表达',
+                            '🌴 热带雨林文化：与自然共生的生活方式'
+                        ]
+                    }
+                };
+                
+                // 获取对应民族的卡片模板
+                const template = cardTemplates[ethnicGroup] || {
+                    title: '民族文化印象',
+                    content: ['选择一个民族，生成专属于你的民族文化印象卡片']
+                };
+                
+                // 填充卡片内容
+                cardTitle.textContent = template.title;
+                cardContent.innerHTML = '';
+                
+                template.content.forEach(item => {
+                    const p = document.createElement('p');
+                    p.textContent = item;
+                    p.className = 'text-sm';
+                    cardContent.appendChild(p);
+                });
+                
+                // 显示生成的卡片
+                generatedCard.classList.remove('hidden');
+            }
+            
+            // 生成印象卡片按钮点击事件
+            generateCardBtn.addEventListener('click', function() {
+                if (!selectedEthnicForCard) {
+                    alert('请先选择一个民族');
+                    return;
+                }
+                
+                // 生成印象卡片
+                generateEthnicCard(selectedEthnicForCard);
+            });
+            
+            // 重新生成按钮点击事件
+            regenerateCardBtn.addEventListener('click', function() {
+                if (selectedEthnicForCard) {
+                    generateEthnicCard(selectedEthnicForCard);
+                }
+            });
+            
+            // 保存卡片按钮点击事件（模拟功能）
+            saveCardBtn.addEventListener('click', function() {
+                alert('卡片保存功能已触发！在实际应用中，这里会实现卡片的下载或保存功能。');
+            });
+            
+            // 初始渲染
+            renderGraph(currentMaterial, currentEthnicGroup);
+        });
+    </script>
+</body>
+</html>

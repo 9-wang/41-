@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}数据看板 - 石榴籽家园{% endblock %}
+
+{% block head %}
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <!-- 数据仪表盘 -->
+  <section class="py-24 bg-gray-900 text-white" id="dashboard">
+    <div class="px-28">
+      <div class="text-center mb-20">
+        <h2 class="text-4xl font-serif text-white mb-4">共同体意识情感指数</h2>
+        <p class="text-xl text-gray-300 max-w-3xl mx-auto">实时感知校园民族团结氛围的温度与浓度</p>
+      </div>
+      <div class="grid grid-cols-4 gap-8 mb-16">
+        <div class="bg-gray-800 rounded-2xl p-6">
+          <div class="text-4xl font-bold text-[#27AE60] mb-2">{{ sentiment_index }}</div>
+          <div class="text-gray-300">情感指数</div>
+          <div class="w-full bg-gray-700 h-2 rounded-full mt-4">
+            <div class="bg-[#27AE60] h-2 rounded-full" style="width: {{ sentiment_index }}%"></div>
+          </div>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6">
+          <div class="text-4xl font-bold text-[#3498DB] mb-2">{{ active_users }}</div>
+          <div class="text-gray-300">月活跃用户</div>
+          <div class="w-full bg-gray-700 h-2 rounded-full mt-4">
+            <div class="bg-[#3498DB] h-2 rounded-full" style="width: {{ active_users_percent }}%"></div>
+          </div>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6">
+          <div class="text-4xl font-bold text-[#F39C12] mb-2">{{ total_stories }}</div>
+          <div class="text-gray-300">社区故事分享</div>
+          <div class="w-full bg-gray-700 h-2 rounded-full mt-4">
+            <div class="bg-[#F39C12] h-2 rounded-full" style="width: {{ total_stories_percent }}%"></div>
+          </div>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6">
+          <div class="text-4xl font-bold text-[#E74C3C] mb-2">{{ positive_content_ratio }}%</div>
+          <div class="text-gray-300">正向内容占比</div>
+          <div class="w-full bg-gray-700 h-2 rounded-full mt-4">
+            <div class="bg-[#E74C3C] h-2 rounded-full" style="width: {{ positive_content_ratio }}%"></div>
+          </div>
+        </div>
+      </div>
+      <!-- 图表区域 -->
+      <div class="grid grid-cols-2 gap-8">
+        <div class="bg-gray-800 rounded-2xl p-6">
+          <h3 class="text-xl font-semibold mb-6">关键词情感热度</h3>
+          <div class="h-80" id="wordcloud"></div>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6">
+          <h3 class="text-xl font-semibold mb-6">共同体意识趋势</h3>
+          <div class="h-80" id="trend-chart"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- ECharts 初始化脚本 -->
+  <script>
+    // 关键词情感热度 - 词云图
+    var wordcloudChart = echarts.init(document.getElementById('wordcloud'));
+    var keywordsData = {{ keywords | tojson }};
+    var wordcloudOption = {
+      series: [{
+        type: 'wordCloud',
+        shape: 'circle',
+        left: 'center',
+        top: 'center',
+        width: '80%',
+        height: '80%',
+        right: null,
+        bottom: null,
+        sizeRange: [12, 60],
+        rotationRange: [-90, 90],
+        rotationStep: 45,
+        gridSize: 8,
+        drawOutOfBound: false,
+        textStyle: {
+          normal: {
+            color: function () {
+              return 'rgb(' + [
+                Math.round(Math.random() * 160),
+                Math.round(Math.random() * 160),
+                Math.round(Math.random() * 160)
+              ].join(',') + ')';
+            }
+          },
+          emphasis: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        },
+        data: keywordsData
+      }]
+    };
+    wordcloudChart.setOption(wordcloudOption);
+
+    // 共同体意识趋势 - 折线图
+    var trendChart = echarts.init(document.getElementById('trend-chart'));
+    var trendOption = {
+      xAxis: {
+        type: 'category',
+        data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+      },
+      yAxis: {
+        type: 'value',
+        min: 70,
+        max: 90
+      },
+      series: [{
+        data: [78.2, 79.5, 81.1, 80.3, 82.6, 83.4, 84.5, 85.2, 84.8, 85.6, 86.3, 87.1],
+        type: 'line',
+        smooth: true,
+        itemStyle: {
+          color: '#27AE60'
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [{offset: 0, color: 'rgba(39, 174, 96, 0.8)'}, {offset: 1, color: 'rgba(39, 174, 96, 0.1)'}]
+          }
+        }
+      }]
+    };
+    trendChart.setOption(trendOption);
+  </script>
+{% endblock %}

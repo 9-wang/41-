@@ -1,0 +1,246 @@
+{% extends "layout.html" %}
+
+{% block title %}石榴籽家园平台原型{% endblock %}
+
+{% block head %}
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/brush_font.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.1.0-beta.3/libs/cn/index.js"></script>
+{% endblock %}
+
+{% block styles %}
+  <style>
+    /* 渐次浮现动画类 */
+    .animate-staggered {
+      opacity: 0;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    /* 主按钮动画延迟 */
+    .flex.space-x-4 .animate-staggered:nth-child(1) {
+      animation-delay: 0.3s;
+    }
+    
+    .flex.space-x-4 .animate-staggered:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+    
+    /* 功能卡片动画延迟 */
+    .grid.grid-cols-3 .animate-staggered:nth-child(1) {
+      animation-delay: 0.9s;
+    }
+    
+    .grid.grid-cols-3 .animate-staggered:nth-child(2) {
+      animation-delay: 1.1s;
+    }
+    
+    .grid.grid-cols-3 .animate-staggered:nth-child(3) {
+      animation-delay: 1.3s;
+    }
+    
+    .grid.grid-cols-3 .animate-staggered:nth-child(4) {
+      animation-delay: 1.5s;
+    }
+    
+    .grid.grid-cols-3 .animate-staggered:nth-child(5) {
+      animation-delay: 1.7s;
+    }
+    
+    .grid.grid-cols-3 .animate-staggered:nth-child(6) {
+      animation-delay: 1.9s;
+    }
+    
+    /* AI智能体浮标移动动画 */
+    @keyframes float {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-15px) rotate(5deg);
+      }
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+    }
+    
+    /* 自定义AI浮标样式 - 应用移动动画 */
+    .coze-chat-sdk__asst-btn {
+      animation: float 3s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+    
+    /* 悬停效果增强 */
+    .coze-chat-sdk__asst-btn:hover {
+      transform: scale(1.1) translateY(-10px);
+      box-shadow: 0 10px 25px rgba(142, 68, 173, 0.4);
+      animation: none;
+    }
+    
+    /* AI石榴君卡片悬停效果增强 */
+    .ai-石榴君-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .ai-石榴君-card:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 20px 40px rgba(142, 68, 173, 0.2);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <!-- 英雄区块 -->
+  <section class="min-h-screen flex items-center px-28 bg-[url('/static/images/1e025e36bd5827162b1868f84017bc19.png')] bg-cover bg-center" id="hero">
+    <div class="w-1/2 pr-16">
+      <h1 class="text-5xl text-[#FFFFFF] leading-tight mb-6">
+        <span style="font-family: 'STKaiti', 'KaiTi', serif;">各民族像</span>
+        <span class="brush-text bayi-style ink-spread" style="font-size: 1.4em; margin: 0 0.1em;">
+        石榴籽
+        </span>
+        <br>
+        <span style="font-family: 'STKaiti', 'KaiTi', serif;">一样紧紧抱在一起</span>
+        <br>
+      </h1>
+      <p class="text-xl text-white mb-10">
+        AI赋能民族文化交融，打造可感知、可互动、可沉淀的中华民族共同体精神家园
+      </p>
+      <div class="flex space-x-4">
+        <a href="{{ url_for('culture.engine') }}" class="animate-staggered bg-[#E74C3C] text-white px-8 py-3 rounded-lg text-lg font-medium shadow-lg hover:bg-[#C0392B] transition">
+          立即体验
+        </a>
+        <a href="{{ url_for('community.index') }}" class="animate-staggered border-2 border-[#3498DB] text-[#3498DB] px-8 py-3 rounded-lg text-lg font-medium hover:bg-[#3498DB] hover:text-white transition">
+          了解更多
+        </a>
+      </div>
+    </div>
+    <div class="w-1/2 relative">
+      <div class="absolute -top-20 -right-10 w-full h-96 bg-[#E74C3C] rounded-full opacity-10 blur-3xl"></div>
+      <div class="relative grid grid-cols-3 gap-6">
+        <a href="{{ url_for('culture.engine') }}" class="animate-staggered bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition">
+          <span class="iconify block mx-auto text-4xl text-[#3498DB]" data-icon="mdi:brain" data-width="48"></span>
+          <h3 class="text-center font-semibold mt-4">AI文化引擎</h3>
+        </a>
+        <a href="{{ url_for('vr.index') }}" class="animate-staggered bg-white p-6 rounded-2xl shadow-lg translate-y-8 hover:shadow-xl transition">
+          <span class="iconify block mx-auto text-4xl text-[#27AE60]" data-icon="mdi:virtual-reality" data-width="48"></span>
+          <h3 class="text-center font-semibold mt-4">VR文明寻踪</h3>
+        </a>
+        <a href="{{ url_for('community.index') }}" class="animate-staggered bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition">
+          <span class="iconify block mx-auto text-4xl text-[#F39C12]" data-icon="mdi:account-group" data-width="48"></span>
+          <h3 class="text-center font-semibold mt-4">互动社区</h3>
+        </a>
+        <a href="#" class="animate-staggered bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition cursor-pointer ai-石榴君-card">
+          <span class="iconify block mx-auto text-4xl text-[#8E44AD]" data-icon="mdi:robot" data-width="48"></span>
+          <h3 class="text-center font-semibold mt-4">AI石榴君</h3>
+        </a>
+        <a href="{{ url_for('dashboard.index') }}" class="animate-staggered bg-white p-6 rounded-2xl shadow-lg translate-y-8 hover:shadow-xl transition">
+          <span class="iconify block mx-auto text-4xl text-[#E74C3C]" data-icon="mdi:chart-areaspline" data-width="48"></span>
+          <h3 class="text-center font-semibold mt-4">情感仪表盘</h3>
+        </a>
+        <a href="{{ url_for('culture.engine') }}" class="animate-staggered bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition">
+          <span class="iconify block mx-auto text-4xl text-[#3498DB]" data-icon="mdi:book-education" data-width="48"></span>
+          <h3 class="text-center font-semibold mt-4">行走思政课</h3>
+        </a>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- AI石榴君交互脚本 -->
+  <script>
+    // 初始化变量
+    let webChatClient = null;
+    
+    // 初始化CozeWebSDK
+    function initCozeSDK() {
+      if (webChatClient) return;
+      
+      try {
+        webChatClient = new CozeWebSDK.WebChatClient({
+          config: {
+            type: 'bot',
+            bot_id: '7575561277872029702',
+            isIframe: false,
+            botInfo: {
+              parameters: {},
+            },
+          },
+          auth: {
+            type: 'token',
+            token: 'pat_VcQkFWmwvfMZxRhsr3grVaXtFkGjsOMneeGsaOJWbhupM8ENVBVSGuCygqkhGhyb',
+            onRefreshToken: async () => 'token'
+          },
+          userInfo: {
+            id: 'user',
+            url: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png',
+            nickname: 'User',
+          },
+          ui: {
+            base: {
+              icon: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/chatsdk-logo.png',
+              layout: 'pc',
+              lang: 'zh-CN',
+              zIndex: 1000
+            },
+            header: {
+              isShow: true,
+              isNeedClose: true,
+            },
+            asstBtn: {
+              isNeed: true,
+              // 自定义悬浮球样式
+              customStyle: {
+                borderRadius: '50%',
+                boxShadow: '0 4px 20px rgba(142, 68, 173, 0.3)'
+              }
+            },
+            footer: {
+              isShow: true,
+              expressionText: 'Powered by Coze',
+            },
+            chatBot: {
+              title: '石榴君',
+              uploadable: true,
+              width: 390,
+            },
+          },
+        });
+        console.log('CozeSDK初始化成功');
+      } catch (error) {
+        console.error('初始化CozeSDK失败:', error);
+      }
+    }
+    
+    // 页面加载完成后初始化SDK
+    document.addEventListener('DOMContentLoaded', () => {
+      initCozeSDK();
+    });
+    
+    // 点击AI石榴君卡片直接打开聊天窗口
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.ai-石榴君-card')) {
+        e.preventDefault();
+        // 确保SDK已初始化
+        initCozeSDK();
+        
+        // 直接打开聊天窗口
+        if (webChatClient && typeof webChatClient.openChat === 'function') {
+          webChatClient.openChat();
+        } else {
+          console.log('聊天客户端尚未准备就绪，等待SDK完全加载...');
+          setTimeout(() => {
+            if (webChatClient && typeof webChatClient.openChat === 'function') {
+              webChatClient.openChat();
+            } else {
+              console.log('无法打开聊天窗口，请检查SDK配置');
+            }
+          }, 1000);
+        }
+      }
+    });
+  </script>
+{% endblock %}

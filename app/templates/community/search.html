@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+
+{% block title %}搜索结果 - 共学共乐{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">搜索结果</h1>
+        
+        <!-- 搜索框 -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-8">
+            <form action="{{ url_for('community.search') }}" method="get" class="flex">
+                <input type="text" name="q" placeholder="搜索任务、故事、帖子..." class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ query }}">
+                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-r-lg hover:bg-blue-600 transition duration-300">
+                    搜索
+                </button>
+            </form>
+        </div>
+        
+        <!-- 搜索结果统计 -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-8">
+            <p class="text-gray-600">
+                找到相关结果 <span class="font-bold text-blue-500">{{ tasks|length + stories|length + posts|length }}</span> 条
+                <span class="ml-4 text-sm text-gray-500">"{{ query }}"</span>
+            </p>
+        </div>
+        
+        <!-- 任务结果 -->
+        {% if tasks %}
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-blue-600">任务</h2>
+            <div class="space-y-4">
+                {% for task in tasks %}
+                <div class="p-4 border-b border-gray-100 last:border-b-0">
+                    <h3 class="text-xl font-semibold mb-2">
+                        <a href="{{ url_for('community.task', id=task.id) }}" class="text-blue-600 hover:text-blue-800 transition duration-300">{{ task.title }}</a>
+                    </h3>
+                    <p class="text-gray-600 mb-3 line-clamp-2">{{ task.description }}</p>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <span class="mr-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            {{ task.created_at.strftime('%Y-%m-%d') }}
+                        </span>
+                        <span>
+                            <i class="fas fa-user mr-1"></i>
+                            {{ task.creator.username }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- 故事结果 -->
+        {% if stories %}
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-green-600">故事</h2>
+            <div class="space-y-4">
+                {% for story in stories %}
+                <div class="p-4 border-b border-gray-100 last:border-b-0">
+                    <h3 class="text-xl font-semibold mb-2">
+                        <a href="{{ url_for('community.story', id=story.id) }}" class="text-green-600 hover:text-green-800 transition duration-300">{{ story.title }}</a>
+                    </h3>
+                    <p class="text-gray-600 mb-3 line-clamp-2">{{ story.content }}</p>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <span class="mr-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            {{ story.created_at.strftime('%Y-%m-%d') }}
+                        </span>
+                        <span class="mr-4">
+                            <i class="fas fa-flag mr-1"></i>
+                            {{ story.ethnicity }}
+                        </span>
+                        <span>
+                            <i class="fas fa-school mr-1"></i>
+                            {{ story.school }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- 帖子结果 -->
+        {% if posts %}
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-purple-600">帖子</h2>
+            <div class="space-y-4">
+                {% for post in posts %}
+                <div class="p-4 border-b border-gray-100 last:border-b-0">
+                    <h3 class="text-xl font-semibold mb-2">
+                        <a href="{{ url_for('community.post', id=post.id) }}" class="text-purple-600 hover:text-purple-800 transition duration-300">{{ post.title }}</a>
+                    </h3>
+                    <p class="text-gray-600 mb-3 line-clamp-2">{{ post.content }}</p>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <span class="mr-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            {{ post.created_at.strftime('%Y-%m-%d') }}
+                        </span>
+                        <span class="mr-4">
+                            <i class="fas fa-tag mr-1"></i>
+                            {{ post.category }}
+                        </span>
+                        <span>
+                            <i class="fas fa-user mr-1"></i>
+                            {{ post.author.username }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- 无结果提示 -->
+        {% if not (tasks or stories or posts) %}
+        <div class="bg-white p-8 rounded-lg shadow-md text-center">
+            <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">未找到相关结果</h3>
+            <p class="text-gray-600 mb-4">请尝试使用其他关键词搜索</p>
+            <a href="{{ url_for('community.index') }}" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                返回首页
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

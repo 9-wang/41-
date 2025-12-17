@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>创建帖子 - 石榴籽家园</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .nav-active { border-bottom: 3px solid #F39C12; }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 导航区 -->
+  <header class="bg-white shadow-md fixed top-0 w-full z-50 h-20 flex items-center px-12">
+    <div class="text-2xl font-serif text-[#E74C3C] flex items-center">
+      <span class="iconify mr-2" data-icon="mdi:fruit-grapes" data-width="32"></span>
+      石榴籽家园
+    </div>
+    <nav class="flex space-x-10 ml-16 text-gray-700">
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('home.index') }}">首页</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('culture.engine') }}">文化引擎</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('vr.index') }}">VR体验</a>
+      <a class="py-2 border-b-2 border-[#F39C12] hover:nav-active transition" href="{{ url_for('community.index') }}">互动社区</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('dashboard.index') }}">数据看板</a>
+    </nav>
+    {% if current_user.is_authenticated %}
+      <div class="ml-auto flex items-center space-x-4">
+        <a href="{{ url_for('user.profile') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+          <span class="iconify mr-1" data-icon="mdi:account" data-width="16"></span>
+          {{ current_user.username }}
+        </a>
+        <a href="{{ url_for('user.logout') }}" class="text-gray-700 hover:text-[#E74C3C] px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+          <span class="iconify mr-1" data-icon="mdi:logout" data-width="16"></span>
+          退出登录
+        </a>
+      </div>
+    {% else %}
+      <a href="{{ url_for('user.login') }}" class="ml-auto bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition">
+        登录/注册
+      </a>
+    {% endif %}
+  </header>
+  
+  <main class="pt-20">
+    <section class="py-12 px-28">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-serif text-[#2C3E50] mb-8">创建新帖子</h1>
+        <form method="POST" action="{{ url_for('community.create') }}">
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-[#2C3E50] mb-2" for="title">帖子标题</label>
+            <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent" id="title" name="title" type="text" placeholder="请输入帖子标题" required/>
+          </div>
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-[#2C3E50] mb-2" for="category">帖子分类</label>
+              <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent" id="category" name="category">
+                <option value="">请选择分类</option>
+                <option value="文化交流">文化交流</option>
+                <option value="学习分享">学习分享</option>
+                <option value="生活感悟">生活感悟</option>
+                <option value="活动通知">活动通知</option>
+                <option value="问题讨论">问题讨论</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#2C3E50] mb-2" for="tags">标签（用逗号分隔）</label>
+              <input class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent" id="tags" name="tags" type="text" placeholder="例如：文化,交流,学习"/>
+            </div>
+          </div>
+          <div class="mb-8">
+            <label class="block text-sm font-medium text-[#2C3E50] mb-2" for="content">帖子内容</label>
+            <textarea class="w-full h-48 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent" id="content" name="content" placeholder="请输入帖子内容" required></textarea>
+          </div>
+          <div class="mb-6">
+            {% if all_tags %}
+              <label class="block text-sm font-medium text-[#2C3E50] mb-2">热门标签</label>
+              <div class="flex flex-wrap gap-2">
+                {% for tag in all_tags %}
+                  <span class="bg-[#3498DB]/10 text-[#3498DB] px-3 py-1 rounded-full cursor-pointer hover:bg-[#3498DB]/20 transition" onclick="addTag('{{ tag.name }}')">
+                    {{ tag.name }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <script>
+            function addTag(tagName) {
+              const tagsInput = document.getElementById('tags');
+              const currentTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+              if (!currentTags.includes(tagName)) {
+                currentTags.push(tagName);
+                tagsInput.value = currentTags.join(', ');
+              }
+            }
+          </script>
+          <div class="flex space-x-4">
+            <a class="bg-gray-200 text-[#2C3E50] px-8 py-3 rounded-lg hover:bg-gray-300 transition" href="{{ url_for('community.index') }}">
+              取消
+            </a>
+            <button class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-8 py-3 rounded-lg hover:shadow-lg transition" type="submit">
+              发布帖子
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="bg-[#2C3E50] text-white py-16">
+    <div class="max-w-5xl mx-auto px-8">
+      <div class="grid grid-cols-4 gap-8">
+        <div>
+          <div class="text-2xl font-serif mb-4 flex items-center">
+            <span class="iconify mr-2" data-icon="mdi:fruit-grapes"></span>
+            石榴籽家园
+          </div>
+          <p class="text-gray-300 text-sm">
+            各民族共生共荣的线上精神家园，铸牢中华民族共同体意识的教育平台。
+          </p>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li><a class="hover:text-white" href="#">关于我们</a></li>
+            <li><a class="hover:text-white" href="#">平台特色</a></li>
+            <li><a class="hover:text-white" href="#">使用指南</a></li>
+            <li><a class="hover:text-white" href="#">加入我们</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">联系方式</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:email"></span> contact@shiliuzi.org</li>
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:phone"></span> 010-88889999</li>
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:map-marker"></span> 北京市海淀区中关村大街1号</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">关注我们</h4>
+          <div class="flex space-x-4">
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:wechat" data-width="20"></span>
+            </a>
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:weibo" data-width="20"></span>
+            </a>
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:qq" data-width="20"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-gray-700 text-center text-gray-300 text-sm">
+        &copy; 2025 石榴籽家园. All rights reserved.
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block title %}任务列表 - 共学共乐{% endblock %}
+
+{% block content %}
+<!-- 任务列表页面 -->
+<section class="py-24 bg-gradient-to-br from-[#FDEDEC] to-[#EBF5FB]">
+    <div class="px-28">
+        <div class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-serif text-[#2C3E50] mb-2">共学共乐任务</h1>
+                <p class="text-xl text-gray-600">参与各种任务，与大家一起学习和成长</p>
+            </div>
+            <a href="{{ url_for('community.task_create') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg transition flex items-center">
+                <span class="iconify mr-2" data-icon="mdi:plus-circle"></span>
+                发布新任务
+            </a>
+        </div>
+        
+        <!-- 任务列表 -->
+        <div class="grid grid-cols-2 gap-8">
+            {% if tasks %}
+            {% for task in tasks %}
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition duration-300">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background: {{ task.color }};">
+                            <span class="iconify text-2xl text-white" data-icon="{{ task.icon }}"></span>
+                        </div>
+                        <div class="ml-4">
+                            <h2 class="text-xl font-serif text-[#2C3E50] mb-1">{{ task.title }}</h2>
+                            <p class="text-sm text-gray-500">创建于 {{ task.created_at.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-4 line-clamp-3">{{ task.description }}</p>
+                    
+                    <!-- 任务标签 -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-xs font-medium">
+                            {{ {
+                                'text': '文字任务',
+                                'image': '图片任务',
+                                'video': '视频任务',
+                                'document': '文档任务'
+                            }[task.task_type] }}
+                        </span>
+                        {% if task.deadline %}
+                        <span class="bg-yellow-100 text-yellow-700 px-4 py-1 rounded-full text-xs font-medium">
+                            截止日期：{{ task.deadline.strftime('%Y-%m-%d') }}
+                        </span>
+                        {% endif %}
+                        {% if task.file_required %}
+                        <span class="bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-medium">
+                            需要上传文件
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 任务操作 -->
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-500 mr-4">
+                                <span class="iconify mr-1" data-icon="mdi:account-multiple-outline"></span>
+                                {{ task.user_tasks|length }} 人参与
+                            </span>
+                            <span class="text-sm text-gray-500">
+                                <span class="iconify mr-1" data-icon="mdi:check-circle-outline"></span>
+                                {{ task.user_tasks|selectattr('is_completed', 'equalto', true)|list|length }} 人完成
+                            </span>
+                        </div>
+                        <a href="{{ url_for('community.task', id=task.id) }}" class="bg-gradient-to-r from-[#3498DB] to-[#2980B9] text-white px-6 py-2 rounded-lg text-sm font-medium hover:shadow-md transition flex items-center">
+                            查看详情
+                            <span class="iconify ml-1" data-icon="mdi:arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="col-span-2 text-center py-16">
+                <span class="iconify text-8xl text-gray-300 mb-4 block" data-icon="mdi:task-outline"></span>
+                <h3 class="text-2xl font-serif text-[#2C3E50] mb-2">暂无任务</h3>
+                <p class="text-gray-600 mb-8">还没有创建任何任务，快来发布第一个任务吧！</p>
+                <a href="{{ url_for('community.task_create') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg transition inline-flex items-center">
+                    <span class="iconify mr-2" data-icon="mdi:plus-circle"></span>
+                    发布新任务
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

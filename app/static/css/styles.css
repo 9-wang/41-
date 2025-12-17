@@ -1,0 +1,268 @@
+/* 中华茶文化图谱页样式表 */
+
+/* 基础样式 */
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    /* 添加文本大小调整属性，确保兼容性 */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+.header {
+    background: linear-gradient(90deg, #e91e63 0%, #c2185b 100%);
+    color: white;
+}
+
+.sidebar {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.map-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-height: 600px;
+}
+
+/* 按钮样式 */
+.btn-primary {
+    background-color: #e91e63;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #c2185b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #e91e63;
+    color: white;
+    border-color: #e91e63;
+    transform: scale(1.05);
+}
+
+.btn-secondary.active {
+    background-color: #e91e63;
+    color: white;
+    border-color: #e91e63;
+    box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+}
+
+/* 筛选状态样式 */
+#filterStatus {
+    font-size: 14px;
+}
+
+#resetFilters:hover {
+    transform: translateY(-1px);
+}
+
+/* 图谱容器样式 */
+.mermaid-container {
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: auto;
+    transition: all 0.3s ease;
+}
+
+.mermaid-container:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* 节点放大样式 */
+.node-enlarged {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    z-index: 10 !important;
+}
+
+/* 知识图谱节点样式 */
+.mermaid-container .node.history {
+    fill: #fef3c7;
+    stroke: #d97706;
+    stroke-width: 1px;
+    color: #92400e;
+}
+
+.mermaid-container .node.etiquette {
+    fill: #d1fae5;
+    stroke: #059669;
+    stroke-width: 1px;
+    color: #065f46;
+}
+
+.mermaid-container .node.lifestyle {
+    fill: #dbeafe;
+    stroke: #2563eb;
+    stroke-width: 1px;
+    color: #1e40af;
+}
+
+.mermaid-container .node.fusion {
+    fill: #ede9fe;
+    stroke: #7c3aed;
+    stroke-width: 1px;
+    color: #5b21b6;
+}
+
+/* 卡片样式 */
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.data-source {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+/* 输入框样式 */
+.input-field {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    transition: border-color 0.3s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #e91e63;
+    box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.1);
+}
+
+/* 民族印象生成器样式 */
+.民族印象生成器 {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+    border-radius: 8px;
+}
+
+/* 民族颜色样式 */
+.bg-red-100 { background-color: #fee2e2; }
+.text-red-600 { color: #dc2626; }
+.bg-orange-100 { background-color: #ffedd5; }
+.text-orange-600 { color: #ea580c; }
+.bg-blue-100 { background-color: #dbeafe; }
+.text-blue-600 { color: #2563eb; }
+.bg-green-100 { background-color: #d1fae5; }
+.text-green-600 { color: #059669; }
+.bg-purple-100 { background-color: #ede9fe; }
+.text-purple-600 { color: #7c3aed; }
+.bg-yellow-100 { background-color: #fef3c7; }
+.text-yellow-600 { color: #d97706; }
+.bg-cyan-100 { background-color: #cffafe; }
+.text-cyan-600 { color: #0891b2; }
+
+/* 动画效果 */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse-effect {
+    animation: pulse 1.5s infinite;
+}
+
+/* 知识图谱增强 */
+.mermaid-container path {
+    stroke-width: 1.5px;
+    transition: stroke-width 0.2s ease;
+}
+
+/* 脉冲效果 */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.9; }
+}
+
+.pulse-effect {
+    animation: pulse 1.5s infinite;
+}
+
+/* 滚动条样式 */
+.mermaid-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.mermaid-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.mermaid-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.mermaid-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* 搜索相关样式 */
+.search-highlight {
+    background-color: #fde68a;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+#searchSuggestions div:hover {
+    background-color: #f3f4f6;
+}
+
+#searchResultsStats {
+    transition: all 0.3s ease;
+}
+
+#searchInput:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .layout {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .map-container {
+        width: 100%;
+    }
+    
+    .mermaid-container {
+        padding: 10px;
+    }
+}

@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}舞蹈比赛{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dance_new.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold text-center text-[#2C3E50]">线上民族舞蹈模仿赛</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        {% for competition in competitions %}
+        <div class="bg-white rounded-lg shadow-sm p-6 h-full">
+            <h5 class="text-lg font-medium text-[#E74C3C] mb-3">{{ competition.title }}</h5>
+            <p class="text-gray-700 mb-4">{{ competition.description[:100] }}...</p>
+            <p class="text-gray-600 mb-4">
+                <small>
+                    开始时间：{{ competition.start_time.strftime('%Y-%m-%d') }}<br>
+                    结束时间：{{ competition.end_time.strftime('%Y-%m-%d') }}<br>
+                    状态：{{ '进行中' if competition.status == 'active' else '已结束' }}
+                </small>
+            </p>
+            <a href="{{ url_for('community.dance_competition', id=competition.id) }}" class="bg-[#3498DB] text-white px-6 py-2 rounded-lg hover:bg-[#2980B9] transition">查看详情</a>
+        </div>
+        {% endfor %}
+        
+        {% if competitions|length == 0 %}
+        <div class="col-12 text-center py-12">
+            <p class="text-gray-600">暂无舞蹈比赛，敬请期待！</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

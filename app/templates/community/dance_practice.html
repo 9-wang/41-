@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ dance.title }} - 舞蹈练习{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dance_combined.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-white">
+  <header class="py-6 px-6">
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-red-600 animate-fadeInLeft">
+        {{ dance.title }} 模仿练习
+      </h1>
+      <a href="{{ url_for('community.dance_selection') }}" class="text-gray-500 btn-hover hover:text-gray-700 transition-all duration-300 animate-fadeInRight">
+        <i class="fa-solid fa-arrow-left"></i> 返回选择
+      </a>
+    </div>
+  </header>
+  
+  <main class="max-w-6xl mx-auto px-4 pb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 左侧：参考视频 -->
+      <div class="lg:col-span-1 bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 animate-fadeInLeft" style="animation-delay: 0.2s">
+        <div class="p-4 bg-white border-b border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+            <i class="fa-solid fa-video text-red-500 mr-2"></i> 参考视频
+          </h2>
+        </div>
+        <div class="p-4">
+          <!-- 视频搜索功能 -->
+          <div class="mb-4">
+            <div class="relative">
+              <input
+                type="text"
+                id="searchQuery"
+                placeholder="搜索更多参考视频..."
+                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300"
+              >
+              <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <button 
+              id="searchVideos"
+              class="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg btn-hover hover:bg-red-600 transition-all duration-300 text-sm w-full flex items-center justify-center"
+            >
+              <i class="fa-solid fa-magnifying-glass mr-1"></i> 全网搜索
+            </button>
+          </div>
+          
+          <!-- 搜索结果 -->
+          <div id="searchResults" class="mb-4 max-h-48 overflow-y-auto hidden">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">搜索结果:</h3>
+            <!-- 搜索结果将通过JavaScript动态生成 -->
+          </div>
+          
+          <!-- 主要参考视频 -->
+          <div class="aspect-video bg-black/5 rounded-lg overflow-hidden mb-4 relative group">
+            <video
+              id="referenceVideo"
+              controls
+              loop
+              class="w-full h-full object-cover rounded-lg transition-all duration-300 group-hover:brightness-90"
+              poster="{{ dance.thumbnail_url }}"
+            >
+              <source src="{{ dance.video_url }}" type="video/mp4">
+              您的浏览器不支持视频标签。请升级您的浏览器。
+            </video>
+          </div>
+          
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 text-sm">舞蹈类别:</span>
+              <span class="font-medium">{{ dance.category }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 text-sm">难度等级:</span>
+              <span class="px-2 py-1 rounded-full text-xs font-medium {% if dance.difficulty == 'easy' %}bg-green-100 text-green-800{% elif dance.difficulty == 'medium' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if dance.difficulty == 'easy' %}简单{% elif dance.difficulty == 'medium' %}中等{% else %}困难{% endif %}
+              </span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 text-sm">预计时长:</span>
+              <span id="durationDisplay">{{ dance.duration }}秒</span>
+            </div>
+            <div id="practiceProgress" class="flex justify-between items-center hidden">
+              <span class="text-gray-600 text-sm">练习进度:</span>
+              <span class="text-red-600 font-medium"><span id="currentTime">0</span>/{{ dance.duration }}秒</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧：摄像头和控制面板 -->
+      <div class="lg:col-span-2 flex flex-col animate-fadeInRight" style="animation-delay: 0.4s">
+        <div class="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 flex-1 flex flex-col">
+          <div class="p-4 bg-white border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+              <i class="fa-solid fa-camera text-red-500 mr-2"></i> 您的动作
+              <span id="aiStatus" class="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hidden">
+                <i class="fa-solid fa-bolt mr-1"></i> AI分析中
+              </span>
+            </h2>
+          </div>
+          
+          <div class="flex-1 p-4 relative">
+            <div class="aspect-video bg-black/5 rounded-lg overflow-hidden relative">
+              {% if not is_camera_active %}
+              <div id="cameraPlaceholder" class="flex flex-col items-center justify-center h-full p-4">
+                <div class="text-gray-400 text-6xl mb-4">
+                  <i class="fa-solid fa-video-slash"></i>
+                </div>
+                <p class="text-gray-500 mb-2">摄像头未启动</p>
+                <p class="text-gray-400 text-sm mb-6 text-center">
+                  请确保您的设备有摄像头，并在下方点击"启用摄像头"按钮授予权限
+                </p>
+                
+                <!-- 摄像头权限提示 -->
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-700 w-full max-w-sm mb-4">
+                  <i class="fa-solid fa-circle-info mr-1"></i> 
+                  为了获得最佳体验，请使用支持摄像头的设备，并确保网络连接稳定。
+                </div>
+              </div>
+              {% endif %}
+              
+              <!-- 摄像头视频 -->
+              <video
+                id="cameraVideo"
+                autoplay
+                playsInline
+                muted
+                class="w-full h-full object-cover rounded-lg transition-all duration-300 {% if not is_camera_active %}hidden{% endif %}"
+              ></video>
+              
+              <!-- 姿态检测画布 -->
+              <canvas
+                id="poseCanvas"
+                class="absolute top-0 left-0 w-full h-full rounded-lg {% if not is_camera_active %}hidden{% endif %}"
+              ></canvas>
+              
+              <!-- 摄像头状态指示 -->
+              <div id="cameraStatus" class="absolute top-4 left-4 bg-green-500/80 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center hidden">
+                <i class="fa-solid fa-circle text-xs mr-1"></i> 摄像头已开启
+              </div>
+              
+              <!-- 练习计时器 -->
+              <div id="practiceTimer" class="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium hidden">
+                0:00
+              </div>
+            </div>
+            
+            <!-- 实时反馈面板 -->
+            <div id="feedbackPanel" class="mt-4 bg-white rounded-lg p-4 border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-md">
+              <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                <i class="fa-solid fa-comment-dots text-red-500 mr-2"></i> 实时反馈
+              </h3>
+              <div id="feedbackList" class="space-y-2 max-h-40 overflow-y-auto">
+                <div class="text-gray-500 text-sm text-center py-4">
+                  点击"开始练习"按钮开始获取AI实时反馈
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 控制按钮 -->
+          <div class="p-4 bg-white border-t border-gray-100 flex justify-center space-x-4">
+            {% if not is_camera_active %}
+            <button
+              id="startCameraBtn"
+              class="px-6 py-3 bg-red-500 text-white rounded-lg btn-hover hover:bg-red-600 transition-all duration-300 font-medium flex items-center"
+            >
+              <i class="fa-solid fa-video mr-2"></i> 启用摄像头
+            </button>
+            {% else %}
+            {% if not is_practicing %}
+            <button
+              id="startPracticeBtn"
+              class="px-6 py-3 bg-green-500 text-white rounded-lg btn-hover hover:bg-green-600 transition-all duration-300 font-medium flex items-center"
+            >
+              <i class="fa-solid fa-play mr-2"></i> 开始练习
+            </button>
+            {% else %}
+            <button
+              id="endPracticeBtn"
+              class="px-6 py-3 bg-red-500 text-white rounded-lg btn-hover hover:bg-red-600 transition-all duration-300 font-medium flex items-center"
+            >
+              <i class="fa-solid fa-stop mr-2"></i> 结束练习
+            </button>
+            {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="py-6 text-center text-gray-500 mt-auto">
+    <p>© 2025 民族舞蹈模仿赛 | 同跳一支舞</p>
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/dance_combined.js') }}"></script>
+{% endblock %}

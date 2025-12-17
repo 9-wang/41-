@@ -1,0 +1,150 @@
+/* 毛笔字体加载和样式方案 */
+
+/* 毛笔字体定义 - 使用Google Fonts作为备选字体 */
+@font-face {
+  font-family: 'BrushFont';
+  /* 仅使用Google Fonts作为备选字体 */
+  src: 
+    local('Ma Shan Zheng'), /* Google Fonts 可商用毛笔字体 */
+    local('ZCOOL XiaoWei'); /* Google Fonts 可商用毛笔字体 */
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 3. 毛笔效果基础样式类 */
+.brush-text {
+  /* 优先使用毛笔字体，提供完整回退链 */
+  font-family: 'BrushFont', 'BrushFallback', 'Noto Sans SC', 'STZhongsong', serif;
+  
+  /* 红色系配色 - 符合中国传统书法和八一风格 */
+  color: #c00000;
+  
+  /* 增加字间距增强书法感 */
+  letter-spacing: 0.15em;
+  
+  /* 字体粗细 */
+  font-weight: normal;
+  
+  /* 基础文字阴影增强立体感 */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  
+  /* 过渡动画 */
+  transition: all 0.3s ease;
+}
+
+/* 4. 增强毛笔效果 */
+.brush-text.enhanced {
+  /* 更强的文字阴影 */
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.5),
+    1px 1px 1px rgba(255, 255, 255, 0.8);
+  
+  /* 文字描边效果 - 增强毛笔字边缘质感 */
+  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.2);
+  text-stroke: 0.5px rgba(0, 0, 0, 0.2);
+  
+  /* 提升字体大小 */
+  font-size: 1.1em;
+}
+
+/* 5. 八一风格特化样式 */
+.brush-text.bayi-style {
+  /* 更深的红色 */
+  color: #a8071a;
+  
+  /* 更强的立体感 */
+  text-shadow: 
+    2px 2px 0 rgba(0, 0, 0, 0.7),
+    1px 1px 1px rgba(255, 255, 255, 0.5);
+  
+  /* 粗体效果 */
+  font-weight: bold;
+  
+  /* 更大的字间距 */
+  letter-spacing: 0.2em;
+}
+
+/* 6. 响应式调整 */
+@media (max-width: 768px) {
+  .brush-text {
+    font-size: 0.9em;
+    letter-spacing: 0.1em;
+  }
+  
+  .brush-text.enhanced,
+  .brush-text.bayi-style {
+    font-size: 1em;
+    letter-spacing: 0.15em;
+  }
+}
+
+/* 7. 悬停效果 */
+.brush-text:hover {
+  /* 轻微放大 */
+  transform: scale(1.02);
+  
+  /* 颜色变化 */
+  color: #ff3333;
+  
+  /* 阴影增强 */
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* 8. 动画效果类 */
+.brush-animation {
+  animation: brushWrite 1.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes brushWrite {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 9. 墨晕效果 */
+.ink-spread {
+  position: relative;
+  z-index: 1;
+}
+
+.ink-spread::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(192,0,0,0.1) 0%, rgba(192,0,0,0) 70%);
+  z-index: -1;
+  filter: blur(5px);
+}
+
+/* 10. 使用示例：
+
+HTML中使用方式：
+
+<!-- 引入CSS -->
+<link rel="stylesheet" href="/static/css/brush_font.css">
+
+<!-- 基本毛笔效果 -->
+<span class="brush-text">石榴籽</span>
+
+<!-- 增强效果 -->
+<span class="brush-text enhanced">石榴籽</span>
+
+<!-- 八一风格 -->
+<span class="brush-text bayi-style">石榴籽</span>
+
+<!-- 带动画的八一风格 -->
+<span class="brush-text bayi-style brush-animation">石榴籽</span>
+
+<!-- 墨晕效果 -->
+<span class="brush-text bayi-style ink-spread">石榴籽</span>
+*/

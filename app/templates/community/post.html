@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ post.title }} - 帖子详情 - 石榴籽家园{% endblock %}
+
+{% block content %}
+  <section class="py-12 px-28">
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <!-- Post Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-serif text-[#2C3E50] mb-4">{{ post.title }}</h1>
+        <div class="flex flex-wrap items-center text-gray-500 text-sm mb-4">
+          <img alt="用户头像" class="w-8 h-8 rounded-full mr-2" src="{{ post.author.avatar or 'https://via.placeholder.com/40' }}"/>
+          <span class="mr-4">{{ post.author.username }}</span>
+          <span class="iconify mr-1" data-icon="mdi:calendar"></span>
+          <span class="mr-4">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+          <span class="iconify mr-1" data-icon="mdi:eye"></span>
+          <span class="mr-4">{{ post.views }}</span>
+          {% if post.category %}
+            <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full mr-2">
+              {{ post.category }}
+            </span>
+          {% endif %}
+          {% if post.tags %}
+            {% for tag in post.tags %}
+              <span class="bg-[#3498DB]/10 text-[#3498DB] px-3 py-1 rounded-full mr-2">
+                {{ tag.name }}
+              </span>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>        
+      <!-- Post Content -->
+      <div class="prose max-w-none mb-8">
+        {{ post.content | safe }}
+      </div>
+      
+      <!-- Post Actions -->
+      <div class="flex space-x-8 mb-8">
+        <button id="like-btn" class="flex items-center space-x-2 transition" onclick="toggleLike()" title="点赞这个帖子">
+          <span class="iconify text-xl" data-icon="{{ 'mdi:heart' if liked else 'mdi:heart-outline' }}" style="color: {{ '#E74C3C' if liked else '#666' }}"></span>
+          <span id="like-count" style="color: {{ '#E74C3C' if liked else '#666' }}">{{ post.likes }}</span>
+        </button>
+        <button class="flex items-center space-x-2 text-gray-600 hover:text-[#3498DB] transition" title="查看评论">
+          <span class="iconify text-xl" data-icon="mdi:comment-outline"></span>
+          <span>{{ post.comments | length }}</span>
+        </button>
+        <button class="flex items-center space-x-2 text-gray-600 hover:text-[#F39C12] transition" onclick="sharePost()" title="分享这个帖子">
+          <span class="iconify text-xl" data-icon="mdi:share-variant-outline"></span>
+          <span>分享</span>
+        </button>
+      </div>
+      
+      <!-- Comment Section -->
+      <div class="border-t border-gray-200 pt-8">
+        <h2 class="text-2xl font-semibold text-[#E74C3C] mb-6">评论 ({{ comments | length }})</h2>
+        
+        <!-- Comment Form -->
+        <div class="mb-8">
+          <form method="POST" action="{{ url_for('community.add_comment', post_id=post.id) }}">
+            <textarea name="content" class="w-full h-24 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent" placeholder="写下你的评论..." required></textarea>
+            <div class="flex justify-end mt-3">
+              <button type="submit" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-2 rounded-lg hover:shadow-lg transition" title="提交评论">
+                提交评论
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <!-- Comments List -->
+        <div class="space-y-6">
+          {% for comment in comments %}
+          <div class="flex space-x-4">
+            <img alt="评论者头像" class="w-10 h-10 rounded-full flex-shrink-0" src="https://via.placeholder.com/50"/>
+            <div class="flex-grow">
+              <div class="flex items-center mb-2">
+                <span class="font-semibold mr-3">用户{{ comment.id }}</span>
+                <span class="text-sm text-gray-500">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+              </div>
+              <div class="bg-gray-100 p-4 rounded-lg">
+                {{ comment.content }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- Like and Share JavaScript -->
+  <script>
+    // 点赞功能
+    function toggleLike() {
+      fetch('{{ url_for('community.like_item', type='post', id=post.id) }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        const likeBtn = document.getElementById('like-btn');
+        const likeCount = document.getElementById('like-count');
+        const icon = likeBtn.querySelector('.iconify');
+        
+        if (data.liked) {
+          icon.setAttribute('data-icon', 'mdi:heart');
+          icon.style.color = '#E74C3C';
+          likeCount.style.color = '#E74C3C';
+        } else {
+          icon.setAttribute('data-icon', 'mdi:heart-outline');
+          icon.style.color = '#666';
+          likeCount.style.color = '#666';
+        }
+        likeCount.textContent = data.likes;
+      })
+      .catch(error => {
+        console.error('点赞失败:', error);
+        alert('请先登录');
+      });
+    }
+    
+    // 分享功能
+    function sharePost() {
+      if (navigator.share) {
+        navigator.share({
+          title: '{{ post.title }}',
+          text: '{{ post.content[:100] }}...',
+          url: window.location.href
+        })
+        .then(() => console.log('分享成功'))
+        .catch(error => console.error('分享失败:', error));
+      } else {
+        // 复制链接到剪贴板
+        navigator.clipboard.writeText(window.location.href)
+          .then(() => alert('链接已复制到剪贴板'))
+          .catch(error => console.error('复制失败:', error));
+      }
+    }
+  </script>
+{% endblock %}

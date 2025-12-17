@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>文化引擎 - 石榴籽家园</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .nav-active { border-bottom: 3px solid #F39C12; }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 导航区 -->
+  <header class="bg-white shadow-md fixed top-0 w-full z-50 h-20 flex items-center px-12">
+    <div class="text-2xl font-serif text-[#E74C3C] flex items-center">
+      <span class="iconify mr-2" data-icon="mdi:fruit-grapes" data-width="32"></span>
+      石榴籽家园
+    </div>
+    <nav class="flex space-x-10 ml-16 text-gray-700">
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('home.index') }}">首页</a>
+      <a class="py-2 border-b-2 border-[#F39C12] hover:nav-active transition" href="{{ url_for('culture.engine') }}">文化引擎</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('vr.index') }}">VR体验</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('community.index') }}">互动社区</a>
+      <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('dashboard.index') }}">数据看板</a>
+    </nav>
+    {% if current_user.is_authenticated %}
+      <div class="ml-auto flex items-center space-x-4">
+        <a href="{{ url_for('user.profile') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+          <span class="iconify mr-1" data-icon="mdi:account" data-width="16"></span>
+          {{ current_user.username }}
+        </a>
+        <a href="{{ url_for('user.logout') }}" class="text-gray-700 hover:text-[#E74C3C] px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+          <span class="iconify mr-1" data-icon="mdi:logout" data-width="16"></span>
+          退出登录
+        </a>
+      </div>
+    {% else %}
+      <a href="{{ url_for('user.login') }}" class="ml-auto bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition">
+        登录/注册
+      </a>
+    {% endif %}
+  </header>
+  <main class="pt-20">
+    {% if current_user.is_authenticated %}
+        {% for poster in posters %}
+            <form method="POST" action="{{ url_for('culture.favorite', id=poster.id) }}">
+                {{ form.hidden_tag() }}
+            </form>
+        {% endfor %}
+    {% endif %}
+    <!-- 生成结果展示 -->
+    <section class="py-24 px-28 bg-[#ECF0F1]">
+      <div class="text-center mb-20">
+        <h2 class="text-4xl font-serif text-[#2C3E50] mb-4">我的民族印象生成结果</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">AI为您生成的多组民族文化融合海报，请尽情欣赏</p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-xl p-8 mb-12">
+        <h3 class="text-2xl font-semibold mb-6 text-[#E74C3C]">原始图像</h3>
+        <div class="flex justify-center">
+          <img src="{{ url_for('static', filename=original_image) }}" alt="原始图像" class="max-h-96 rounded-lg shadow-lg">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-8">
+        {% for poster in posters %}
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+          <div class="bg-gray-100 rounded-lg h-64 flex items-center justify-center mb-4 relative">
+            <img src="{{ url_for('static', filename=poster.generated_image) }}" alt="{{ poster.title }}" class="max-h-64 rounded-lg">
+            <!-- 收藏按钮 -->
+            {% if current_user.is_authenticated %}
+                <div class="absolute top-4 right-4">
+                    <form method="POST" action="{{ url_for('culture.favorite', id=poster.id) }}">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="bg-white p-2 rounded-full shadow-md hover:shadow-lg transition">
+                            <span class="iconify text-2xl {% if current_user in poster.favorited_by %}text-red-500{% else %}text-gray-400 hover:text-red-500{% endif %}" 
+                                  data-icon="ion:heart" data-width="28"></span>
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="absolute top-4 right-4">
+                    <a href="{{ url_for('user.login') }}" class="bg-white p-2 rounded-full shadow-md">
+                        <span class="iconify text-2xl text-gray-400" data-icon="ion:heart-outline" data-width="28"></span>
+                    </a>
+                </div>
+            {% endif %}
+          </div>
+          <h3 class="text-xl font-semibold mb-2 text-[#F39C12]">{{ poster.title }}</h3>
+          <p class="text-gray-600 mb-4">{{ poster.description }}</p>
+          {% if poster.ethnic_elements %}
+            <div class="mb-4">
+              <span class="font-semibold text-[#E74C3C] text-sm">融合元素:</span>
+              <div class="flex flex-wrap gap-2 mt-1">
+                {% for element in poster.ethnic_elements.split(', ') %}
+                  <span class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white text-xs px-3 py-1 rounded-full">
+                    {{ element }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+          <div class="flex justify-between items-center text-sm text-gray-500">
+              <span>{{ poster.generated_at }}</span>
+              <div class="flex space-x-2">
+                <button class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-4 py-2 rounded-full hover:shadow-lg transition">
+                  下载
+                </button>
+                <button class="bg-white text-[#E74C3C] border-2 border-[#E74C3C] px-4 py-2 rounded-full hover:bg-[#E74C3C] hover:text-white transition" onclick="openShareModal('{{ poster.id }}')">
+                  <span class="iconify mr-1" data-icon="mdi:share-variant" data-width="18"></span>
+                  分享
+                </button>
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-12 text-center">
+        <a href="{{ url_for('culture.engine') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-12 py-4 rounded-full hover:shadow-lg transition">
+          生成更多海报
+        </a>
+      </div>
+    </section>
+  <!-- 分享弹窗 -->
+  <div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-serif text-[#E74C3C]">分享海报</h2>
+        <button onclick="closeShareModal()" class="text-gray-400 hover:text-[#E74C3C] text-3xl" title="关闭分享弹窗">&times;</button>
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">分享链接</label>
+        <div class="flex items-center">
+          <input type="text" id="shareLink" class="flex-1 border border-gray-300 rounded-l-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E74C3C]" readonly>
+          <button onclick="copyShareLink()" class="bg-[#E74C3C] text-white px-4 py-3 rounded-r-full hover:bg-[#C0392B] transition" title="复制分享链接">
+            <span class="iconify" data-icon="mdi:content-copy" data-width="20"></span>
+          </button>
+        </div>
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">分享到</label>
+        <div class="flex space-x-4">
+          <button class="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 transition" title="分享到微信">
+            <span class="iconify" data-icon="mdi:wechat" data-width="24"></span>
+          </button>
+          <button class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition" title="分享到微博">
+            <span class="iconify" data-icon="mdi:weibo" data-width="24"></span>
+          </button>
+          <button class="bg-gray-500 text-white p-3 rounded-full hover:bg-gray-600 transition" title="分享到QQ">
+            <span class="iconify" data-icon="mdi:qq" data-width="24"></span>
+          </button>
+        </div>
+      </div>
+      <div class="text-center">
+        <button onclick="closeShareModal()" class="bg-white text-[#E74C3C] border-2 border-[#E74C3C] px-8 py-3 rounded-full hover:bg-[#E74C3C] hover:text-white transition" title="关闭分享弹窗">
+          关闭
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 分享弹窗功能
+    function openShareModal(posterId) {
+      // 生成分享链接（这里需要根据实际情况修改）
+      const shareUrl = window.location.origin + '/culture/share/' + posterId;
+      document.getElementById('shareLink').value = shareUrl;
+      document.getElementById('shareModal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('shareModal').classList.add('hidden');
+    }
+
+    function copyShareLink() {
+      const shareLinkInput = document.getElementById('shareLink');
+      shareLinkInput.select();
+      shareLinkInput.setSelectionRange(0, 99999); // 兼容移动端
+      navigator.clipboard.writeText(shareLinkInput.value);
+      alert('分享链接已复制到剪贴板');
+    }
+  </script>
+  </main>
+  <!-- 页脚 -->
+  <footer class="bg-[#2C3E50] text-white py-16">
+    <div class="max-w-5xl mx-auto px-8">
+      <div class="grid grid-cols-4 gap-8">
+        <div>
+          <div class="text-2xl font-serif mb-4 flex items-center">
+            <span class="iconify mr-2" data-icon="mdi:fruit-grapes"></span>
+            石榴籽家园
+          </div>
+          <p class="text-gray-300 text-sm">
+            各民族共生共荣的线上精神家园，铸牢中华民族共同体意识的教育平台。
+          </p>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li><a class="hover:text-white" href="#">关于我们</a></li>
+            <li><a class="hover:text-white" href="#">平台特色</a></li>
+            <li><a class="hover:text-white" href="#">使用指南</a></li>
+            <li><a class="hover:text-white" href="#">加入我们</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">联系方式</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:email"></span> contact@shiliuzi.org</li>
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:phone"></span> 010-88889999</li>
+            <li class="flex items-center"><span class="iconify mr-2" data-icon="mdi:map-marker"></span> 北京市海淀区中关村大街1号</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">关注我们</h4>
+          <div class="flex space-x-4">
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:wechat" data-width="20"></span>
+            </a>
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:weibo" data-width="20"></span>
+            </a>
+            <a class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center hover:bg-white hover:text-[#2C3E50] transition">
+              <span class="iconify" data-icon="mdi:qq" data-width="20"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-gray-700 text-center text-gray-300 text-sm">
+        &copy; 2025 石榴籽家园. All rights reserved.
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,232 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ task.title }} - 共学共乐{% endblock %}
+
+{% block content %}
+<!-- 任务详情页面 -->
+<section class="py-24 bg-gradient-to-br from-[#FDEDEC] to-[#EBF5FB]">
+    <div class="px-28">
+        <!-- 任务基本信息卡片 -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background: {{ task.color }};">
+                        <span class="iconify text-3xl text-white" data-icon="{{ task.icon }}"></span>
+                    </div>
+                    <div class="ml-6">
+                        <h1 class="text-3xl font-serif text-[#2C3E50] mb-2">{{ task.title }}</h1>
+                        <p class="text-gray-600">{{ task.creator.username if task.creator else '管理员' }} 创建于 {{ task.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+                {% if task.deadline %}
+                <div class="bg-yellow-100 text-yellow-700 px-6 py-3 rounded-lg text-sm font-medium">
+                    截止日期：{{ task.deadline.strftime('%Y-%m-%d') }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-[#E74C3C] mb-4">任务描述</h2>
+                <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ task.description }}</p>
+            </div>
+            
+            <!-- 任务要求 -->
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h3 class="text-lg font-medium text-[#2C3E50] mb-2">任务类型</h3>
+                    <p class="text-gray-600">{{ {
+                        'text': '文字任务',
+                        'image': '图片任务',
+                        'video': '视频任务',
+                        'document': '文档任务'
+                    }[task.task_type] }}</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-[#2C3E50] mb-2">文件要求</h3>
+                    {% if task.file_required %}
+                    <p class="text-gray-600">
+                        需要上传文件<br>
+                        允许类型：{{ task.file_types if task.file_types else '任意类型' }}<br>
+                        大小限制：{{ task.file_size_limit }}MB
+                    </p>
+                    {% else %}
+                    <p class="text-gray-600">无需上传文件</p>
+                    {% endif %}
+                </div>
+                
+                {% if task.reward %}
+                <div>
+                    <h3 class="text-lg font-medium text-[#2C3E50] mb-2">任务奖励</h3>
+                    <p class="text-gray-600">{{ task.reward }}</p>
+                </div>
+                {% endif %}
+                
+                <div>
+                    <h3 class="text-lg font-medium text-[#2C3E50] mb-2">任务状态</h3>
+                    {% if user_task %}
+                    {% if user_task.is_completed %}
+                    <p class="text-green-600 font-medium">已完成</p>
+                    {% else %}
+                    <p class="text-yellow-600 font-medium">进行中 ({{ user_task.progress }}%)</p>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-gray-600">未开始</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 任务操作按钮 -->
+            <div class="flex justify-center gap-6">
+                {% if not user_task or not user_task.is_completed %}
+                <a href="{{ url_for('community.task_submit', id=task.id) }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-12 py-3 rounded-lg font-medium hover:shadow-lg transition flex items-center">
+                    <span class="iconify mr-2" data-icon="mdi:upload"></span>
+                    提交任务
+                </a>
+                {% endif %}
+                <a href="{{ url_for('community.tasks') }}" class="bg-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-400 transition flex items-center">
+                    <span class="iconify mr-2" data-icon="mdi:arrow-left"></span>
+                    返回任务列表
+                </a>
+            </div>
+        </div>
+        
+        <!-- 用户任务进度 -->
+        {% if user_task %}
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 class="text-xl font-semibold text-[#E74C3C] mb-4">我的任务进度</h2>
+            
+            <!-- 进度条 -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">任务进度</span>
+                    <span class="text-sm font-bold text-[#E74C3C]">{{ user_task.progress }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] h-4 rounded-full" style="width: {{ user_task.progress }}%"></div>
+                </div>
+            </div>
+            
+            <!-- 进度详情 -->
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">开始时间</h3>
+                    <p class="text-gray-700">{{ user_task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                {% if user_task.completed_at %}
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">完成时间</h3>
+                    <p class="text-gray-700">{{ user_task.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- 任务提交记录 -->
+            {% if user_task.submission %}
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-medium text-[#2C3E50] mb-4">我的提交记录</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">提交时间</span>
+                        <span class="text-sm text-gray-500">{{ user_task.submission.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    {% if user_task.submission.content %}
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">提交内容</h4>
+                        <p class="text-gray-600 whitespace-pre-line">{{ user_task.submission.content }}</p>
+                    </div>
+                    {% endif %}
+                    {% if user_task.submission.file_url %}
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">提交文件</h4>
+                        <a href="{{ user_task.submission.file_url }}" target="_blank" class="text-[#3498DB] hover:underline flex items-center">
+                            <span class="iconify mr-1" data-icon="mdi:file-download"></span>
+                            下载文件
+                        </a>
+                    </div>
+                    {% endif %}
+                    <!-- 管理员反馈 -->
+                    {% if user_task.submission.feedback %}
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="text-sm font-medium text-[#27AE60] mb-2">管理员反馈</h4>
+                        <p class="text-gray-600 whitespace-pre-line">{{ user_task.submission.feedback }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- 任务提交记录 -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h2 class="text-xl font-semibold text-[#E74C3C] mb-6">任务提交记录</h2>
+            
+            {% if submissions %}
+            <div class="space-y-6">
+                {% for submission in submissions %}
+                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span class="iconify text-2xl text-gray-600" data-icon="mdi:account"></span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="font-medium text-[#2C3E50]">{{ submission.user.username }}</h3>
+                                <p class="text-sm text-gray-500">{{ submission.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        <div class="bg-{{ {
+                            'pending': 'blue',
+                            'approved': 'green',
+                            'rejected': 'red'
+                        }[submission.status] }}-100 text-{{ {
+                            'pending': 'blue',
+                            'approved': 'green',
+                            'rejected': 'red'
+                        }[submission.status] }}-700 px-4 py-1 rounded-full text-xs font-medium">
+                            {{ {
+                                'pending': '待审核',
+                                'approved': '已通过',
+                                'rejected': '已拒绝'
+                            }[submission.status] }}
+                        </div>
+                    </div>
+                    
+                    {% if submission.content %}
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">提交内容</h4>
+                        <p class="text-gray-600 whitespace-pre-line">{{ submission.content }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.file_url %}
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">提交文件</h4>
+                        <a href="{{ submission.file_url }}" target="_blank" class="text-[#3498DB] hover:underline flex items-center">
+                            <span class="iconify mr-1" data-icon="mdi:file-download"></span>
+                            下载文件
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.feedback %}
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="text-sm font-medium text-[#27AE60] mb-2">管理员反馈</h4>
+                        <p class="text-gray-600 whitespace-pre-line">{{ submission.feedback }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12 text-gray-500">
+                <span class="iconify text-6xl mb-4 block" data-icon="mdi:file-document-outline"></span>
+                <p class="text-lg">暂无提交记录</p>
+                <p class="text-sm mt-2">成为第一个提交任务的人吧！</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

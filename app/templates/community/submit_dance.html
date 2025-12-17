@@ -1,0 +1,376 @@
+{% extends "layout.html" %}
+
+{% block title %}提交舞蹈作品 - {{ dance.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dance_new.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 上传参赛作品页面 -->
+<section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-semibold text-[#2C3E50] mb-4">上传参赛作品</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">展示您的舞蹈才华，与各族学子共同交流</p>
+        </div>
+        
+        <!-- 参赛舞蹈信息卡片 -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h3 class="text-xl font-semibold text-[#E74C3C] text-center mb-4">{{ dance.title }}</h3>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <span class="block text-gray-600 text-sm">民族</span>
+                    <span class="block text-lg font-medium">{{ dance.ethnicity }}</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <span class="block text-gray-600 text-sm">难度</span>
+                    <span class="block text-lg font-medium">{{ dance.difficulty }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 上传流程步骤 -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#E74C3C] text-white font-semibold">1</div>
+                <div class="h-1 bg-[#E74C3C] flex-grow"></div>
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-600 font-semibold">2</div>
+                <div class="h-1 bg-gray-200 flex-grow"></div>
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-600 font-semibold">3</div>
+            </div>
+            <div class="flex justify-between space-x-16">
+                <span class="text-sm font-medium text-[#E74C3C]">选择视频</span>
+                <span class="text-sm font-medium text-gray-600">AI评分</span>
+                <span class="text-sm font-medium text-gray-600">完成提交</span>
+            </div>
+        </div>
+        
+        <!-- 主要上传表单卡片 -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <form id="upload-form" method="POST" enctype="multipart/form-data">
+                <!-- 视频上传区域 -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-[#2C3E50] mb-4">选择您的舞蹈视频</h4>
+                    
+                    <!-- 拖放上传区域 -->
+                    <div id="drop-area" class="border-2 border-dashed border-[#3498DB] rounded-lg p-8 text-center hover:border-[#2980B9] transition-colors mb-6">
+                        <div id="drop-content">
+                            <span class="iconify text-[#3498DB] text-5xl mb-4" data-icon="mdi:upload"></span>
+                            <h5 class="text-lg font-medium mb-2">拖放视频文件到此处</h5>
+                            <p class="text-gray-600 mb-4">或</p>
+                            <label for="video" class="bg-[#3498DB] text-white px-6 py-3 rounded-lg inline-block cursor-pointer hover:bg-[#2980B9] transition">
+                                浏览文件
+                                <input type="file" class="hidden" id="video" name="video" accept="video/mp4,video/avi,video/mov,video/mkv,video/wmv">
+                            </label>
+                            <p class="text-sm text-gray-500 mt-4">支持 MP4、AVI、MOV、MKV、WMV 格式，文件大小不超过 500MB</p>
+                        </div>
+                        
+                        <!-- 视频预览区域 -->
+                        <div id="video-preview" class="mt-6 hidden">
+                            <video id="preview-video" class="w-full max-h-64 object-contain rounded-lg" controls></video>
+                            <div class="mt-4 grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <span class="block text-sm text-gray-600">文件名</span>
+                                    <span id="file-name" class="block text-sm font-medium"></span>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <span class="block text-sm text-gray-600">文件大小</span>
+                                    <span id="file-size" class="block text-sm font-medium"></span>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <span class="block text-sm text-gray-600">时长</span>
+                                    <span id="video-duration" class="block text-sm font-medium"></span>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <span class="block text-sm text-gray-600">格式</span>
+                                    <span id="file-format" class="block text-sm font-medium"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- URL输入选项 -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="text-md font-medium mb-3">或输入视频 URL</h5>
+                        <div class="flex items-center space-x-3">
+                            <input type="url" class="flex-grow border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#3498DB]" id="video_url" name="video_url" placeholder="https://example.com/your_video.mp4">
+                            <button type="button" id="url-preview-btn" class="bg-[#3498DB] text-white px-4 py-2 rounded-lg hover:bg-[#2980B9] transition" title="预览URL视频">
+                                预览
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 错误信息 -->
+                    <div id="file-error" class="text-red-500 mt-3" style="display: none;"></div>
+                </div>
+                
+                <!-- 上传进度条 -->
+                <div id="progress-container" class="mb-6" style="display: none;">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium">上传进度</span>
+                        <span id="progress-text" class="text-sm text-gray-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div id="progress-bar" class="bg-[#E74C3C] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="flex justify-center space-x-4 pt-4 border-t">
+                    <a href="{{ url_for('community.dance', id=dance.id) }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        取消
+                    </a>
+                    <button type="submit" class="bg-[#E74C3C] text-white px-6 py-2 rounded-lg hover:bg-[#C0392B] transition" title="提交参赛作品">
+                        提交参赛作品
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 参赛须知卡片 -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+            <h4 class="text-lg font-semibold text-[#2C3E50] text-center mb-4">参赛须知</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <span class="iconify text-[#27AE60] mt-1" data-icon="mdi:check-circle"></span>
+                        <p class="text-gray-700">确保您上传的视频内容符合比赛主题和要求</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="iconify text-[#27AE60] mt-1" data-icon="mdi:check-circle"></span>
+                        <p class="text-gray-700">视频长度建议在 1-5 分钟之间</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="iconify text-[#27AE60] mt-1" data-icon="mdi:check-circle"></span>
+                        <p class="text-gray-700">确保视频画面清晰，声音正常</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <span class="iconify text-[#27AE60] mt-1" data-icon="mdi:check-circle"></span>
+                        <p class="text-gray-700">作品提交后将进行 AI 评分，评分结果将在几分钟内生成</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="iconify text-[#27AE60] mt-1" data-icon="mdi:check-circle"></span>
+                        <p class="text-gray-700">您可以在"我的参赛作品"中查看评分结果</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="iconify text-[#27AE60] mt-1" data-icon="mdi:check-circle"></span>
+                        <p class="text-gray-700">请尊重他人知识产权，确保您拥有视频的合法权益</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('upload-form');
+        const videoInput = document.getElementById('video');
+        const videoUrlInput = document.getElementById('video_url');
+        const urlPreviewBtn = document.getElementById('url-preview-btn');
+        const fileError = document.getElementById('file-error');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const dropArea = document.getElementById('drop-area');
+        const videoPreview = document.getElementById('video-preview');
+        const previewVideo = document.getElementById('preview-video');
+        const dropContent = document.getElementById('drop-content');
+        
+        // 支持的视频格式
+        const supportedFormats = ['.mp4', '.avi', '.mov', '.mkv', '.wmv'];
+        const maxFileSize = 500 * 1024 * 1024; // 500MB
+        
+        // 拖放上传功能
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('border-[#2980B9]');
+            dropArea.classList.add('bg-blue-50');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('border-[#2980B9]');
+            dropArea.classList.remove('bg-blue-50');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                videoInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        }
+        
+        // 文件选择处理
+        videoInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFileSelect(this.files[0]);
+            }
+        });
+        
+        function handleFileSelect(file) {
+            // 验证文件类型
+            const fileExtension = file.name.toLowerCase().substr(file.name.lastIndexOf('.'));
+            if (!supportedFormats.includes(fileExtension)) {
+                showError(`不支持的文件格式。请上传 ${supportedFormats.join(', ')} 格式的视频。`);
+                return;
+            }
+            
+            // 验证文件大小
+            if (file.size > maxFileSize) {
+                showError(`文件大小超过限制。请上传不超过 500MB 的视频。`);
+                return;
+            }
+            
+            // 隐藏错误信息
+            hideError();
+            
+            // 显示视频预览
+            showVideoPreview(file);
+        }
+        
+        // 显示视频预览
+        function showVideoPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewVideo.src = e.target.result;
+                videoPreview.classList.remove('hidden');
+                dropContent.classList.add('hidden');
+                
+                // 显示文件信息
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-size').textContent = formatFileSize(file.size);
+                document.getElementById('file-format').textContent = file.name.split('.').pop().toUpperCase();
+                
+                // 获取视频时长
+                previewVideo.onloadedmetadata = function() {
+                    document.getElementById('video-duration').textContent = formatDuration(this.duration);
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 格式化视频时长
+        function formatDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 显示错误信息
+        function showError(message) {
+            fileError.textContent = message;
+            fileError.style.display = 'block';
+        }
+        
+        // 隐藏错误信息
+        function hideError() {
+            fileError.style.display = 'none';
+        }
+        
+        // URL预览功能
+        urlPreviewBtn.addEventListener('click', function() {
+            const url = videoUrlInput.value.trim();
+            if (url) {
+                // 简单验证URL格式
+                const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
+                if (!urlPattern.test(url)) {
+                    showError('请输入有效的视频URL');
+                    return;
+                }
+                
+                hideError();
+                
+                // 显示URL视频预览
+                previewVideo.src = url;
+                videoPreview.classList.remove('hidden');
+                dropContent.classList.add('hidden');
+                
+                // 重置文件信息
+                document.getElementById('file-name').textContent = 'URL视频';
+                document.getElementById('file-size').textContent = 'N/A';
+                document.getElementById('file-format').textContent = 'URL';
+                document.getElementById('video-duration').textContent = 'N/A';
+            }
+        });
+        
+        // 表单提交处理
+        form.addEventListener('submit', function(e) {
+            const file = videoInput.files[0];
+            const videoUrl = videoUrlInput.value.trim();
+            
+            // 验证是否选择了文件或输入了URL
+            if (!file && !videoUrl) {
+                showError('请选择视频文件或输入视频URL。');
+                e.preventDefault();
+                return;
+            }
+            
+            // 验证文件类型和大小
+            if (file) {
+                const fileExtension = file.name.toLowerCase().substr(file.name.lastIndexOf('.'));
+                if (!supportedFormats.includes(fileExtension)) {
+                    showError(`不支持的文件格式。请上传 ${supportedFormats.join(', ')} 格式的视频。`);
+                    e.preventDefault();
+                    return;
+                }
+                
+                if (file.size > maxFileSize) {
+                    showError(`文件大小超过限制。请上传不超过 500MB 的视频。`);
+                    e.preventDefault();
+                    return;
+                }
+            }
+            
+            // 显示上传进度
+            progressContainer.style.display = 'block';
+            
+            // 注意：真正的进度更新需要使用 XMLHttpRequest 或 Fetch API
+            // 这里只是简单模拟进度
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += Math.random() * 20;
+                if (progress >= 90) {
+                    progress = 90; // 保持在90%，直到服务器响应
+                    clearInterval(interval);
+                }
+                progressBar.style.width = progress + '%';
+                progressText.textContent = `${Math.round(progress)}%`;
+            }, 500);
+        });
+    });
+</script>
+{% endblock scripts %}
+{% endblock %}

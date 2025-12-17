@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block title %}提交任务 - {{ task.title }}{% endblock %}
+
+{% block content %}
+<!-- 提交任务页面 -->
+<section class="py-24 bg-gradient-to-br from-[#FDEDEC] to-[#EBF5FB]">
+    <div class="px-28">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-serif text-[#2C3E50] mb-4">提交任务</h1>
+            <p class="text-xl text-gray-600">请按照要求提交您的任务成果</p>
+        </div>
+        
+        <!-- 任务信息卡片 -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: {{ task.color }};">
+                    <span class="iconify text-2xl text-white" data-icon="{{ task.icon }}"></span>
+                </div>
+                <div class="ml-6">
+                    <h2 class="text-2xl font-semibold text-[#2C3E50] mb-2">{{ task.title }}</h2>
+                    <p class="text-gray-600">{{ task.description[:100] }}...</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-gray-700 mb-1">任务类型</h3>
+                    <p class="text-gray-600">{{ {
+                        'text': '文字任务',
+                        'image': '图片任务',
+                        'video': '视频任务',
+                        'document': '文档任务'
+                    }[task.task_type] }}</p>
+                </div>
+                
+                {% if task.file_required %}
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-gray-700 mb-1">文件要求</h3>
+                    <p class="text-gray-600">
+                        允许类型：{{ task.file_types if task.file_types else '任意类型' }}<br>
+                        大小限制：{{ task.file_size_limit }}MB
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 主要表单卡片 -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+            <form id="task-submit-form" method="POST" enctype="multipart/form-data">
+                <!-- 提交内容 -->
+                <div class="mb-8">
+                    <label class="block text-gray-700 font-medium mb-2" for="content">提交内容</label>
+                    <textarea id="content" name="content" rows="8" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-[#E74C3C] focus:outline-none transition" placeholder="请输入您的任务成果，或上传相关文件"></textarea>
+                </div>
+                
+                <!-- 文件上传 -->
+                {% if task.file_required %}
+                <div class="mb-8">
+                    <label class="block text-gray-700 font-medium mb-4" for="file">上传文件</label>
+                    
+                    <!-- 拖拽上传区域 -->
+                    <div id="drag-drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-[#E74C3C] transition">
+                        <div class="flex flex-col items-center">
+                            <span class="iconify text-5xl text-gray-400 mb-4" data-icon="mdi:file-upload-outline"></span>
+                            <p class="text-gray-600 mb-4">将文件拖拽到此处，或点击选择文件</p>
+                            <input type="file" id="file" name="file" class="hidden" accept="{{ task.file_types if task.file_types else '*/*' }}">
+                            <button type="button" class="bg-gradient-to-r from-[#3498DB] to-[#2980B9] text-white px-6 py-2 rounded-lg font-medium hover:shadow-md transition" onclick="document.getElementById('file').click()">
+                                选择文件
+                            </button>
+                            <p class="text-sm text-gray-500 mt-4">
+                                支持的文件类型：{{ task.file_types if task.file_types else '所有类型' }}<br>
+                                文件大小限制：{{ task.file_size_limit }}MB
+                            </p>
+                        </div>
+                        
+                        <!-- 上传文件预览 -->
+                        <div id="file-preview" class="mt-6 hidden">
+                            <h4 class="text-lg font-medium text-[#2C3E50] mb-2">已选择文件</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="iconify text-2xl text-gray-600 mr-3" data-icon="mdi:file-outline"></span>
+                                    <div>
+                                        <p id="file-name" class="text-gray-700 font-medium"></p>
+                                        <p id="file-size" class="text-sm text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <button type="button" class="text-[#E74C3C] hover:text-[#C0392B] font-medium" onclick="clearFileSelection()">
+                                    <span class="iconify mr-1" data-icon="mdi:close"></span>
+                                    移除
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- 表单操作按钮 -->
+                <div class="flex justify-center gap-6">
+                    <a href="{{ url_for('community.task', id=task.id) }}" class="bg-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-400 transition">取消</a>
+                    <button type="submit" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-12 py-3 rounded-lg font-medium hover:shadow-lg transition">提交任务</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+    // 拖拽上传功能
+    const dragDropArea = document.getElementById('drag-drop-area');
+    const fileInput = document.getElementById('file');
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    
+    // 拖拽事件处理
+    if (dragDropArea) {
+        dragDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.add('border-[#E74C3C]');
+        });
+        
+        dragDropArea.addEventListener('dragleave', () => {
+            dragDropArea.classList.remove('border-[#E74C3C]');
+        });
+        
+        dragDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.remove('border-[#E74C3C]');
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                updateFilePreview(e.dataTransfer.files[0]);
+            }
+        });
+    }
+    
+    // 文件选择事件处理
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateFilePreview(e.target.files[0]);
+            }
+        });
+    }
+    
+    // 更新文件预览
+    function updateFilePreview(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        filePreview.classList.remove('hidden');
+    }
+    
+    // 清除文件选择
+    function clearFileSelection() {
+        fileInput.value = '';
+        filePreview.classList.add('hidden');
+    }
+    
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // 表单提交前验证
+    document.getElementById('task-submit-form').addEventListener('submit', (e) => {
+        {% if task.file_required %}
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            alert('请上传文件！');
+            return false;
+        }
+        
+        // 检查文件大小
+        const file = fileInput.files[0];
+        const maxSize = {{ task.file_size_limit }} * 1024 * 1024; // MB转Bytes
+        if (file.size > maxSize) {
+            e.preventDefault();
+            alert(`文件大小不能超过 {{ task.file_size_limit }}MB！`);
+            return false;
+        }
+        
+        // 检查文件类型
+        {% if task.file_types %}
+        const allowedTypes = '{{ task.file_types }}'.split(',');
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        if (!allowedTypes.includes(fileExt)) {
+            e.preventDefault();
+            alert(`不支持的文件类型！支持的类型：{{ task.file_types }}`);
+            return false;
+        }
+        {% endif %}
+        {% endif %}
+        
+        return true;
+    });
+</script>
+{% endblock %}

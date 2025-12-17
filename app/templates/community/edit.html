@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑帖子 - 民族文化AI互动平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .shadow-lg-hover {
+            transition: box-shadow 0.3s;
+        }
+        .shadow-lg-hover:hover {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#E8F4F8] to-[#F0F4F8]">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="text-2xl font-serif text-[#E74C3C] flex items-center">
+              <span class="iconify mr-2" data-icon="mdi:fruit-grapes" data-width="32"></span>
+              石榴籽家园
+            </div>
+            <nav class="flex space-x-10 ml-16 text-gray-700">
+              <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('home.index') }}">首页</a>
+              <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('culture.engine') }}">文化引擎</a>
+              <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('vr.index') }}">VR体验</a>
+              <a class="py-2 border-b-2 border-transparent hover:nav-active transition text-[#E74C3C] border-b-2 border-[#F39C12]" href="{{ url_for('community.index') }}">互动社区</a>
+              <a class="py-2 border-b-2 border-transparent hover:nav-active transition" href="{{ url_for('dashboard.index') }}">数据看板</a>
+            </nav>
+            {% if current_user.is_authenticated %}
+              <div class="ml-auto flex items-center space-x-4">
+                <a href="{{ url_for('user.profile') }}" class="bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+                  <span class="iconify mr-1" data-icon="mdi:account" data-width="16"></span>
+                  {{ current_user.username }}
+                </a>
+                <a href="{{ url_for('user.logout') }}" class="text-gray-700 hover:text-[#E74C3C] px-4 py-2 rounded-full font-medium hover:shadow-lg transition">
+                  <span class="iconify mr-1" data-icon="mdi:logout" data-width="16"></span>
+                  退出登录
+                </a>
+              </div>
+            {% else %}
+              <a href="{{ url_for('user.login') }}" class="ml-auto bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition">
+                登录/注册
+              </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- 内容区 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <h2 class="text-2xl font-semibold text-[#2C3E50] mb-6">编辑帖子</h2>
+                <form method="POST">
+                    <div class="mb-6">
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                        <input type="text" id="title" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent outline-none" value="{{ post.title }}" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                            <select id="category" name="category" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent outline-none">
+                                <option value="">请选择分类</option>
+                                <option value="文化交流" {{ 'selected' if post.category == '文化交流' else '' }}>文化交流</option>
+                                <option value="学习分享" {{ 'selected' if post.category == '学习分享' else '' }}>学习分享</option>
+                                <option value="生活感悟" {{ 'selected' if post.category == '生活感悟' else '' }}>生活感悟</option>
+                                <option value="活动通知" {{ 'selected' if post.category == '活动通知' else '' }}>活动通知</option>
+                                <option value="问题讨论" {{ 'selected' if post.category == '问题讨论' else '' }}>问题讨论</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">标签（用逗号分隔）</label>
+                            <input type="text" id="tags" name="tags" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent outline-none" value="{{ ', '.join(tag.name for tag in post.tags) if post.tags else '' }}">
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        {% if all_tags %}
+                            <label class="block text-sm font-medium text-gray-700 mb-2">热门标签</label>
+                            <div class="flex flex-wrap gap-2">
+                                {% for tag in all_tags %}
+                                    <span class="bg-[#3498DB]/10 text-[#3498DB] px-3 py-1 rounded-full cursor-pointer hover:bg-[#3498DB]/20 transition" onclick="addTag('{{ tag.name }}')">
+                                        {{ tag.name }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-6">
+                        <label for="content" class="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                        <textarea id="content" name="content" rows="10" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#E74C3C] focus:border-transparent outline-none" required>{{ post.content }}</textarea>
+                    </div>
+                    <script>
+                        function addTag(tagName) {
+                            const tagsInput = document.getElementById('tags');
+                            const currentTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+                            if (!currentTags.includes(tagName)) {
+                                currentTags.push(tagName);
+                                tagsInput.value = currentTags.join(', ');
+                            }
+                        }
+                    </script>
+                    <div class="flex justify-end space-x-4">
+                        <a href="{{ url_for('community.post', id=post.id) }}" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition">取消</a>
+                        <button type="submit" class="px-6 py-2 bg-gradient-to-r from-[#E74C3C] to-[#F39C12] text-white rounded-full hover:shadow-lg transition">保存修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-[#2C3E50] text-white py-10">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="https://modao.cc/agent-py/workspace/691b233af5ce15fe6e795003/generated_images/90885c005c21408e8242e893e0f87c8e.jpg" alt="logo" class="w-10 h-10 rounded-full mr-3">
+                        <h3 class="text-lg font-semibold">民族文化AI互动平台</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">让更多人了解和传播中国各民族的历史文化</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+                    <div class="space-y-2">
+                        <a href="#" class="block text-gray-400 text-sm hover:text-white">首页</a>
+                        <a href="#" class="block text-gray-400 text-sm hover:text-white">文化百科</a>
+                        <a href="#" class="block text-gray-400 text-sm hover:text-white">互动社区</a>
+                        <a href="#" class="block text-gray-400 text-sm hover:text-white">个人中心</a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">联系方式</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <span class="iconify mr-2" data-icon="mdi:email-outline" style="color: #bdc3c7;"></span>
+                            <span class="text-gray-400 text-sm">info@minzuwenhua.com</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="iconify mr-2" data-icon="mdi:phone-outline" style="color: #bdc3c7;"></span>
+                            <span class="text-gray-400 text-sm">400-123-4567</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">关注我们</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-[#34495E] flex items-center justify-center hover:bg-[#E74C3C] transition">
+                            <span class="iconify" data-icon="mdi:wechat" style="color: #ffffff;"></span>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-[#34495E] flex items-center justify-center hover:bg-[#E74C3C] transition">
+                            <span class="iconify" data-icon="mdi:weibo" style="color: #ffffff;"></span>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-[#34495E] flex items-center justify-center hover:bg-[#E74C3C] transition">
+                            <span class="iconify" data-icon="mdi:qq" style="color: #ffffff;"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10 pt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
+                <p>© 2023 民族文化AI互动平台. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
