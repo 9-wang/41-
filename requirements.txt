@@ -1,0 +1,16 @@
+Flask==2.2.5
+Flask-SQLAlchemy==2.5.1
+Flask-Migrate==4.0.7
+Werkzeug==2.2.3
+SQLAlchemy==1.4.49
+email_validator==2.2.0
+waitress==3.0.2
+gunicorn==22.0.0
+flask-login==0.6.3
+flask-cors==5.0.0
+flask-wtf==1.2.1
+wtforms==3.1.2
+requests==2.32.3
+flask-compress==1.23
+flask-caching==2.3.1
+
